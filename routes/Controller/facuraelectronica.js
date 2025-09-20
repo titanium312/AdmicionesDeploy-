@@ -86,7 +86,7 @@ async function FacturaElectronica(req, res) {
     const nit = ids?.nitInstitucion ? String(ids.nitInstitucion) : 'NITDESCONOCIDO';
 
     // 2) Obtener URL del ZIP
-    const zipInfoUrl = `https://server-01.saludplus.co/facturasAdministar/GetZipFile?IdFactura=${encodeURIComponent(idFactura)}`;
+    const zipInfoUrl = `https://balance.saludplus.co/facturasAdministar/GetZipFile?IdFactura=${encodeURIComponent(idFactura)}`;
 
     const responseZip = await axios.get(zipInfoUrl);
     if (responseZip.data?.valorRetorno !== 1) {
