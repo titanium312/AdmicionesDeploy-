@@ -7,45 +7,47 @@ const { obtenerIds, obtenerIdsPorAdmision } = require('./Base/ids');
  *  Mapeos y constantes
  * ========================= */
 const PREFIJOS_NUEVA_EPS = {
-// Facturación / administrativos
-  factura: 'FAT',                  // Factura de venta
-  detalle_factura: 'DFV',          // Detalle de cargos (detalle de factura)
-  prefacturas: 'DFV',              // Prefacturas
-  nota_credito_debito: 'NDC',      // Nota crédito o débito
-  formato_ami: 'AMI',              // Formato AMI
-  lista_precios: 'LDP',            // Lista de precios
-  comprobante_recibo_usuario: 'CRC', // Comprobante de recibido del usuario
+  // Facturación electrónica
+  factura_electronica: 'FEV',
+
+  // Facturación / administrativos
+  factura: 'FAT',
+  detalle_factura: 'DFV',
+  prefacturas: 'DFV',
+  nota_credito_debito: 'NDC',
+  formato_ami: 'AMI',
+  lista_precios: 'LDP',
+  comprobante_recibo_usuario: 'CRC',
 
   // Clínicos / asistenciales
-  historia: 'HAU',                 // Hoja de atención de urgencia
-  evolucion: 'HEV',                // Resumen de atención / hoja de evolución
-  epicrisis: 'EPI',                // Epicrisis
-  enfermeria: 'HAM',               // Hoja de administración de medicamentos
-  hoja_medicamentos: 'HAM',        // Alias interno, mismo prefijo HAM
-  hoja_procedimientos: 'PDX',      // Resultado de procedimientos de apoyo diagnóstico
-  descripcion_quirurgica: 'DQX',   // Descripción quirúrgica
-  registro_anestesia: 'RAN',       // Registro de anestesia
+  historia: 'HAU',
+  evolucion: 'HEV',
+  epicrisis: 'EPI',
+  enfermeria: 'HAM',
+  hoja_medicamentos: 'HAM',
+  hoja_procedimientos: 'PDX',
+  descripcion_quirurgica: 'DQX',
+  registro_anestesia: 'RAN',
+
+  // Órdenes médicas (incluye lo que antes era HAD)
+  ordenmedica: 'OPF',
 
   // Traslados y transporte
-  traslado_asistencial: 'TAP',     // Traslado asistencial de pacientes
-  transporte_no_asistencial: 'TNA',// Transporte no asistencial de pacientes
+  traslado_asistencial: 'TAP',
+  transporte_no_asistencial: 'TNA',
 
-  // Nutrición (anexos específicos)
-  acta_junta_nutricion: 'JNM',     // Acta de Juntas (UNIRS)
-  consentimiento_nutricion: 'CNM', // Consentimiento informado (UNIRS)
+  // Nutrición
+  acta_junta_nutricion: 'JNM',
+  consentimiento_nutricion: 'CNM',
 
-  // Material osteosíntesis
+  // Otros
   factura_material_osteosintesis: 'FMO',
-
-  // Orden médica
-  ordenmedica: 'OPF',              // Orden o prescripción facultativa
-
-  // Otros internos (mantener si tu sistema los usa)
-  anexo: 'ANX',                    
+  anexo: 'ANX',
   admisiones: 'ADM',
-  hoja_gastos: 'LDP',              // Si tu “gastos” se emite como lista de precios
-  historia_asistencial: 'HEV',     // Historia asistencial consolidada
+  hoja_gastos: 'LDP',
+  historia_asistencial: 'HEV',
 };
+
 
 const CODIGOS_SALUD_TOTAL = {
   factura: 'prefacura',
@@ -91,18 +93,35 @@ const reportMapping = [
 
 // Códigos → reportes (para filtro `tipos`)
 const CODE_TO_REPORTS = {
-  HT:   ['ListadoHistoriasClinicasDetallado3'],
-  ANX:  ['ListadoanexoDosDetallado'],
+  HAU:  ['ListadoHistoriasClinicasDetallado3'],
+  HEV:  ['ListadoEvolucionDestallado'],
   EPI:  ['ListadoEpicrisis'],
-  EVL:  ['ListadoEvolucionDestallado'],
-  ENF:  ['ListadoNotasEnfermeriaDestallado'],
+  HAM:  ['ListadoAsistencialHojaAdministracionMedicamentos'],
+  PDX:  ['ListadoAsistencialHojaAdministracionProcedimientos'],
+  OPF:  ['ListadoOrdenMedicasDestallado'],  // único válido (HAD eliminado)
   ADM:  ['ListadoAdmisionesDetallado'],
+  DFV:  ['ListadoPrefacturasDetallado'],
+  HAA:  ['ListadoHistoriasAsistencialesDestallado'],
+  ANX:  ['ListadoanexoDosDetallado'],
   PREF: ['ListadoPrefacturasDetallado'],
-  OM:   ['ListadoOrdenMedicasDestallado'],
   HAP:  ['ListadoAsistencialHojaAdministracionProcedimientos'],
   HMD:  ['ListadoAsistencialHojaAdministracionMedicamentos'],
   HGA:  ['ListadoAsistencialHojaGastos'],
-  HAA:  ['ListadoHistoriasAsistencialesDestallado'],
+
+  // Nuevos códigos (pendientes de reportes)
+  NDC:  ['*'],
+  AMI:  ['*'],
+  DQX:  ['*'],
+  RAN:  ['*'],
+  LDP:  ['*'],
+  JNM:  ['*'],
+  CNM:  ['*'],
+  FAT:  ['*'],
+  FMO:  ['*'],
+  TAP:  ['*'],
+  TNA:  ['*'],
+  CRC:  ['*'],
+
   TODO: ['*'],
 };
 
