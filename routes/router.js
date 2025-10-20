@@ -8,16 +8,17 @@ const { obtenerDatosLogin } = require('./Controller/Base/toke');
 const { BatAuto } = require('./descargar/descargar');
 
 const { cambiarFechaEmision  } = require('./Controller/otro/cambiarF');
+const { DescargarLaboratorio  } = require('./Controller/otro/laboratorio');
 
 // area de gereadorde url pdf
 router.get('/Hs_Anx', Hs_Anx);
 router.get('/facturaElectronica', FacturaElectronica);
+router.post('/laboratorio', DescargarLaboratorio);
 
 
 //area de cosultas
 router.post('/descargar', BatAuto);
 router.post('/api/istitucion', obtenerDatosLogin);
-
 
 
 

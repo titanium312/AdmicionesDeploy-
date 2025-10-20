@@ -1,4 +1,4 @@
-// ./Base/ids.js
+// Base/ids.js
 const sql = require('mssql');
 
 const dbConfig = {
@@ -6,18 +6,13 @@ const dbConfig = {
   password: process.env.DB_PASS || 'lsbQUA2Z75)2',
   server: process.env.DB_HOST || '54.159.152.155',
   database: process.env.DB_NAME || 'SaludPlus24HRS',
-  options: {
-    encrypt: false,
-    trustServerCertificate: true,
-  },
+  options: { encrypt: false, trustServerCertificate: true },
   connectionTimeout: Number(process.env.DB_CONN_TIMEOUT || 15000),
 };
 
 let poolPromise;
 
-/**
- * Retorna (o crea) el pool global
- */
+/** Pool global */
 async function getPool() {
   if (!poolPromise) {
     poolPromise = sql.connect(dbConfig);
@@ -25,35 +20,47 @@ async function getPool() {
   return poolPromise;
 }
 
-/**
- * Convierte a arreglo, filtra nulos/undefined y hace único
- */
+/** Array único sin nulos */
 function uniqArray(v) {
   const arr = v == null ? [] : Array.isArray(v) ? v : [v];
   return [...new Set(arr.filter((x) => x !== null && x !== undefined))];
 }
 
-/**
- * INTENTA resolver una admisión partiendo de:
- *  - número_admision
- *  - id_admision
- *  - número_factura
- *
- * Devuelve: { id_admision, fk_paciente, via: 'admision' | 'factura' }
- */
+/** Detecta la columna de fecha disponible en facturacion_admisiones (dinámico) */
+async function pickAdmDateColumn(pool) {
+  // Prioridad de nombres comunes; agrega aquí otros si tu esquema usa otro alias
+  const candidatos = [
+    'fecha_admision',
+    'fec_admision',
+    'fecha_ingreso',
+    'fec_ingreso',
+    'fecha_ing',
+    'f_admision',
+    'admision_fecha',
+    'fechaadmision',
+    'fecha_ingreso_admision',
+  ];
+  const r = await pool.request().query(`
+    SELECT name
+    FROM sys.columns
+    WHERE object_id = OBJECT_ID('dbo.facturacion_admisiones')
+  `);
+  const cols = new Set((r.recordset || []).map(x => String(x.name).toLowerCase()));
+  const hit = candidatos.find(n => cols.has(n.toLowerCase()));
+  return hit || null; // null si no hay ninguna de las candidatas
+}
+
+/** Resolver admisión a partir de clave (número admisión/id admisión o número de factura) */
 async function resolverAdmision({ institucionId, clave }) {
-  if (!institucionId || !clave) {
-    throw new Error('institucionId y clave son requeridos');
-  }
+  if (!institucionId || !clave) throw new Error('institucionId y clave son requeridos');
 
   const pool = await getPool();
   const idInst = Number(institucionId);
-
-  // Si la clave es numérica, se intenta como numero_admision o id_admision
   const admArg = Number(clave);
+
+  // Intento por numero_admision o id_admision
   if (!Number.isNaN(admArg)) {
-    const rAdm = await pool
-      .request()
+    const rAdm = await pool.request()
       .input('idInst', sql.Int, idInst)
       .input('admArg', sql.Int, admArg)
       .query(`
@@ -63,16 +70,14 @@ async function resolverAdmision({ institucionId, clave }) {
           AND (numero_admision = @admArg OR id_admision = @admArg)
         ORDER BY id_admision DESC
       `);
-
     if (rAdm.recordset.length > 0) {
       const { id_admision, fk_paciente } = rAdm.recordset[0];
       return { id_admision, fk_paciente, via: 'admision' };
     }
   }
 
-  // Si no hubo match como admisión (o la clave no era numérica), probar como número de factura
-  const rFac = await pool
-    .request()
+  // Intento por número de factura
+  const rFac = await pool.request()
     .input('idInst', sql.Int, idInst)
     .input('numFactura', sql.VarChar, String(clave))
     .query(`
@@ -89,9 +94,7 @@ async function resolverAdmision({ institucionId, clave }) {
 
   const id_admision = rFac.recordset[0].fk_admision;
 
-  // Recuperar fk_paciente para la admisión encontrada
-  const rAdmFromFactura = await pool
-    .request()
+  const rAdmFromFactura = await pool.request()
     .input('idInst', sql.Int, idInst)
     .input('id_admision', sql.Int, id_admision)
     .query(`
@@ -106,120 +109,88 @@ async function resolverAdmision({ institucionId, clave }) {
   return { id_admision, fk_paciente, via: 'factura' };
 }
 
-/**
- * Retorna IDs y metadatos asociados a una admisión
- */
+/** IDs y metadatos por admisión (fecha_admision con selección dinámica) */
 async function obtenerIdsPorAdmision({ institucionId, idAdmision }) {
-  if (!institucionId || !idAdmision) {
-    throw new Error('institucionId e idAdmision son requeridos');
-  }
+  if (!institucionId || !idAdmision) throw new Error('institucionId e idAdmision son requeridos');
 
   const pool = await getPool();
   const idInst = Number(institucionId);
   const admArg = Number(idAdmision);
 
-  // 1) Resolver id_admision y paciente
-  const qAdm = `
-    SELECT TOP 1 id_admision, fk_paciente
-    FROM facturacion_admisiones
-    WHERE fk_institucion = @idInst
-      AND (numero_admision = @admArg OR id_admision = @admArg)
-    ORDER BY id_admision DESC
-  `;
-  const rAdm = await pool
-    .request()
+  // fecha_admision dinámica
+  const dateCol = await pickAdmDateColumn(pool);
+  const dateSelect = dateCol
+    ? `, [${dateCol}] AS fecha_admision`
+    : `, CAST(NULL AS datetime) AS fecha_admision`;
+
+  // 1) admisión + paciente + fecha_admision
+  const rAdm = await pool.request()
     .input('idInst', sql.Int, idInst)
     .input('admArg', sql.Int, admArg)
-    .query(qAdm);
+    .query(`
+      SELECT TOP 1
+        id_admision,
+        fk_paciente
+        ${dateSelect}
+      FROM facturacion_admisiones
+      WHERE fk_institucion = @idInst
+        AND (numero_admision = @admArg OR id_admision = @admArg)
+      ORDER BY id_admision DESC
+    `);
 
   if (rAdm.recordset.length === 0) {
     throw new Error('Admisión no encontrada para la institución indicada');
   }
 
-  const { id_admision, fk_paciente } = rAdm.recordset[0];
+  const { id_admision, fk_paciente, fecha_admision } = rAdm.recordset[0];
 
-  // 2) Historia clínica
-  const qHist = `
-    SELECT TOP 1 id_historia
-    FROM historias_clinicas
-    WHERE fk_admision = @id_admision
-    ORDER BY id_historia DESC
-  `;
-  const rHist = await pool
-    .request()
+  // 2) historia (por si la usas en otros reportes)
+  const rHist = await pool.request()
     .input('id_admision', sql.Int, id_admision)
-    .query(qHist);
-
+    .query(`
+      SELECT TOP 1 id_historia
+      FROM historias_clinicas
+      WHERE fk_admision = @id_admision
+      ORDER BY id_historia DESC
+    `);
   const id_historia = rHist.recordset[0]?.id_historia || null;
 
-  // 3) Consultas paralelas
-  const [rNotas, rOrdenes, rEgresos, rEvol, rAnx2, rFacts, rPaciente, rInstitucion] =
-    await Promise.all([
-      id_historia
-        ? pool
-            .request()
-            .input('id_historia', sql.Int, id_historia)
-            .query('SELECT id_nota_enfermeria FROM notas_enfermeria WHERE fk_historia = @id_historia')
-        : { recordset: [] },
+  // 3) facturas, paciente, institución
+  const [rFacts, rPaciente, rInstitucion] = await Promise.all([
+    pool.request()
+      .input('idInst', sql.Int, idInst)
+      .input('id_admision', sql.Int, id_admision)
+      .query(`
+        SELECT id_factura, numero_factura, fk_admision
+        FROM facturas
+        WHERE fk_institucion = @idInst
+          AND fk_admision   = @id_admision
+        ORDER BY id_factura DESC
+      `),
 
-      id_historia
-        ? pool
-            .request()
-            .input('id_historia', sql.Int, id_historia)
-            .query('SELECT id_orden_medica FROM ordenes_medicas WHERE fk_historia = @id_historia')
-        : { recordset: [] },
+    fk_paciente
+      ? pool.request()
+          .input('fk_paciente', sql.Int, fk_paciente)
+          .query(`
+            SELECT
+              fecha_nacimiento,
+              tipo_documento_Paciente,
+              documento_paciente,
+              nombre1_paciente
+            FROM pacientes
+            WHERE id_paciente = @fk_paciente
+          `)
+      : { recordset: [] },
 
-      id_historia
-        ? pool
-            .request()
-            .input('id_historia', sql.Int, id_historia)
-            .query('SELECT id_egreso_historia FROM egresos_historia WHERE fk_historia = @id_historia')
-        : { recordset: [] },
+    pool.request()
+      .input('idInst', sql.Int, idInst)
+      .query(`
+        SELECT nit_institucion, id_institucion
+        FROM instituciones
+        WHERE id_institucion = @idInst
+      `),
+  ]);
 
-      pool
-        .request()
-        .input('id_admision', sql.Int, id_admision)
-        .query('SELECT id_evolucion FROM evoluciones WHERE fk_admision = @id_admision'),
-
-      pool
-        .request()
-        .input('id_admision', sql.Int, id_admision)
-        .query('SELECT id_anexo_tecnico_dos FROM anexoDos WHERE fk_admision = @id_admision'),
-
-      pool
-        .request()
-        .input('idInst', sql.Int, idInst)
-        .input('id_admision', sql.Int, id_admision)
-        .query(`
-          SELECT id_factura, numero_factura, fk_admision
-          FROM facturas
-          WHERE fk_institucion = @idInst
-            AND fk_admision   = @id_admision
-          ORDER BY id_factura DESC
-        `),
-
-      fk_paciente
-        ? pool
-            .request()
-            .input('fk_paciente', sql.Int, fk_paciente)
-            .query(`
-              SELECT tipo_documento_paciente, documento_paciente, nombre1_paciente
-              FROM pacientes
-              WHERE id_paciente = @fk_paciente
-            `)
-        : { recordset: [] },
-
-      pool
-        .request()
-        .input('idInst', sql.Int, idInst)
-        .query(`
-          SELECT nit_institucion, id_institucion
-          FROM instituciones
-          WHERE id_institucion = @idInst
-        `),
-    ]);
-
-  // 4) Normalización de IDs
   const facturasDetalle = (rFacts.recordset || []).map(
     ({ id_factura, numero_factura, fk_admision }) => ({
       id_factura,
@@ -227,14 +198,14 @@ async function obtenerIdsPorAdmision({ institucionId, idAdmision }) {
       id_admision: fk_admision,
     })
   );
-
   const numerosFacturas = uniqArray(facturasDetalle.map((x) => x.numero_factura));
   const paciente = rPaciente.recordset[0] || null;
   const institucion = rInstitucion.recordset[0] || null;
 
   const nitInstitucion = institucion?.nit_institucion || null;
-  const tipoDocumento = paciente?.tipo_documento_paciente || null;
+  const tipoDocumento = paciente?.tipo_documento_Paciente || null;
   const numero_documento = paciente?.documento_paciente || null;
+  const fecha_nacimiento = paciente?.fecha_nacimiento || null;
   const numeroFactura = numerosFacturas.length > 0 ? numerosFacturas[0] : null;
 
   return {
@@ -245,65 +216,126 @@ async function obtenerIdsPorAdmision({ institucionId, idAdmision }) {
     institucion,
     nitInstitucion,
     numeroFactura,
+    // Campos solicitados
     tipoDocumento,
     numero_documento,
+    fecha_nacimiento,
+    fecha_admision,
   };
 }
 
-/**
- * Unifica admisión o factura como entrada
- */
+/** Unificar entrada por clave (admision o factura) */
 async function obtenerIds({ institucionId, clave }) {
-  if (!institucionId || !clave) {
-    throw new Error('institucionId y clave son requeridos');
-  }
-
+  if (!institucionId || !clave) throw new Error('institucionId y clave son requeridos');
   const { id_admision } = await resolverAdmision({ institucionId, clave });
   return obtenerIdsPorAdmision({ institucionId, idAdmision: id_admision });
 }
 
-/**
- * NUEVO: devuelve solo id_factura, tipo_documento, numero_documento, nombre
- */
-async function obtenerResumenFacturaPaciente({ institucionId, clave }) {
-  if (!institucionId || !clave) {
-    throw new Error('institucionId y clave son requeridos');
+/** Factura por numero_admision (tu SELECT exacto) */
+async function obtenerFacturaPorNumeroAdmision({ institucionId, numeroAdmision }) {
+  if (!institucionId || !numeroAdmision) {
+    throw new Error('institucionId y numeroAdmision son requeridos');
   }
-
-  const { id_admision, fk_paciente } = await resolverAdmision({ institucionId, clave });
   const pool = await getPool();
-  const idInst = Number(institucionId);
-
-  const r = await pool
-    .request()
-    .input('idInst', sql.Int, idInst)
-    .input('id_admision', sql.Int, id_admision)
-    .input('fk_paciente', sql.Int, fk_paciente ?? null)
+  const r = await pool.request()
+    .input('idInst', sql.Int, Number(institucionId))
+    .input('numAdm', sql.Int, Number(numeroAdmision))
     .query(`
-      SELECT
-        f.id_factura AS id_factura,
-        p.tipo_documento_paciente AS tipo_documento,
-        p.documento_paciente AS numero_documento,
-        p.nombre1_paciente AS nombre
-      FROM facturas f
-      LEFT JOIN pacientes p ON p.id_paciente = @fk_paciente
-      WHERE f.fk_institucion = @idInst
-        AND f.fk_admision = @id_admision
-      ORDER BY f.id_factura DESC
+      SELECT TOP 1 id_factura, fecha_emision, numero_factura, fk_paciente, fk_admision
+      FROM facturas
+      WHERE fk_institucion = @idInst
+        AND fk_admision = (
+          SELECT id_admision
+          FROM facturacion_admisiones
+          WHERE fk_institucion = @idInst
+            AND numero_admision = @numAdm
+        )
+      ORDER BY id_factura DESC
     `);
-
-  return (r.recordset || []).map(row => ({
-    id_factura: row.id_factura,
-    tipo_documento: row.tipo_documento ?? null,
-    numero_documento: row.numero_documento ?? null,
-    nombre: row.nombre ?? null,
-  }));
+  return r.recordset[0] || null;
 }
 
-// Exportar todo
+/** Paciente por id e institución (nombres tal cual compartiste) */
+async function obtenerPacientePorId({ institucionId, idPaciente }) {
+  if (!institucionId || !idPaciente) {
+    throw new Error('institucionId e idPaciente son requeridos');
+  }
+  const pool = await getPool();
+  const r = await pool.request()
+    .input('idInst', sql.Int, Number(institucionId))
+    .input('idPac', sql.Int, Number(idPaciente))
+    .query(`
+      SELECT fecha_nacimiento,
+             tipo_documento_Paciente,
+             documento_paciente,
+             nombre1_paciente
+      FROM pacientes
+      WHERE fk_institucion = @idInst
+        AND id_paciente = @idPac
+    `);
+  return r.recordset[0] || null;
+}
+
+/** Fecha de admisión por numero_admision (dinámico) */
+async function obtenerFechaAdmisionPorNumero({ institucionId, numeroAdmision }) {
+  const pool = await getPool();
+  const idInst = Number(institucionId);
+  const numAdm = Number(numeroAdmision);
+
+  const dateCol = await pickAdmDateColumn(pool);
+  const dateSelect = dateCol
+    ? `[${dateCol}] AS fecha_admision`
+    : `CAST(NULL AS datetime) AS fecha_admision`;
+
+  const r = await pool.request()
+    .input('idInst', sql.Int, idInst)
+    .input('numAdm', sql.Int, numAdm)
+    .query(`
+      SELECT TOP 1 ${dateSelect}
+      FROM facturacion_admisiones
+      WHERE fk_institucion = @idInst
+        AND numero_admision = @numAdm
+      ORDER BY id_admision DESC
+    `);
+
+  return r.recordset[0]?.fecha_admision || null;
+}
+
+/** Resumen completo por numero_admision (lo que usa el Controller en mode=json) */
+async function obtenerIdentidadPorNumeroAdmision({ institucionId, numeroAdmision }) {
+  const factura = await obtenerFacturaPorNumeroAdmision({ institucionId, numeroAdmision });
+  if (!factura) return null;
+
+  const paciente = factura.fk_paciente
+    ? await obtenerPacientePorId({ institucionId, idPaciente: factura.fk_paciente })
+    : null;
+
+  const fecha_admision = await obtenerFechaAdmisionPorNumero({ institucionId, numeroAdmision });
+
+  return {
+    // de facturas
+    id_factura: factura.id_factura,
+    fecha_emision: factura.fecha_emision,
+    numero_factura: factura.numero_factura,
+    fk_admision: factura.fk_admision,
+    fk_paciente: factura.fk_paciente,
+    // de pacientes
+    fecha_nacimiento: paciente?.fecha_nacimiento ?? null,
+    tipo_documento: paciente?.tipo_documento_Paciente ?? null,
+    numero_documento: paciente?.documento_paciente ?? null,
+    nombre: paciente?.nombre1_paciente ?? null,
+    // de admisiones
+    fecha_admision,
+  };
+}
+
 module.exports = {
+  getPool,
+  resolverAdmision,
   obtenerIdsPorAdmision,
   obtenerIds,
-  resolverAdmision,
-  obtenerResumenFacturaPaciente,
+  obtenerFacturaPorNumeroAdmision,
+  obtenerPacientePorId,
+  obtenerFechaAdmisionPorNumero,
+  obtenerIdentidadPorNumeroAdmision,
 };
