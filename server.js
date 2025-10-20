@@ -25,7 +25,7 @@ app.use(router);
 
 // Ruta personalizada para laboratorio
 app.get('/laboratorio', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'lab.html'));
+  res.sendFile(path.join(__dirname, 'public/lab', 'lab.html'));
 });
 
 
