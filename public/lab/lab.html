@@ -78,6 +78,10 @@
     .btn-brand:active{transform:translateY(1px)}
     .btn-brand:disabled{opacity:.75;box-shadow:none}
 
+    /* Contenedor del botón al 60% */
+    .btn-wrap{width:60%;margin-inline:auto}
+    @media (max-width: 576px){ .btn-wrap{width:100%} }
+
     .toggle-link{cursor:pointer;color:#0f74c5;font-weight:600;font-size:0.9rem}
     .help-row{border-top:1px dashed #e4eff8;color:var(--muted);font-size:0.9rem}
     .privacy{font-size:.85rem;color:var(--muted)}
@@ -110,38 +114,41 @@
         </div>
 
         <form id="formLab" class="needs-validation" novalidate>
-          <div class="mb-2">
-            <label for="numeroAdmision" class="form-label">Número de Admisión</label>
-            <input id="numeroAdmision" type="text" inputmode="numeric" class="form-control" placeholder="Ej: 163307" required />
-            <div class="form-text">Lo encuentras en tu orden o recibo.</div>
-            <div class="invalid-feedback">Ingrese el número de admisión.</div>
-          </div>
-
-          <div class="mb-2">
-            <label for="tipoDocumento" class="form-label">Tipo de Documento</label>
-            <select id="tipoDocumento" class="form-select" required></select>
-            <div class="form-text"><span id="toggleTipos" class="toggle-link">mostrar más opciones</span></div>
-            <div class="invalid-feedback">Seleccione el tipo de documento.</div>
-          </div>
-
-          <div class="mb-2">
-            <label for="numeroDocumento" class="form-label">Número de Documento</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
-              <input id="numeroDocumento" type="text" inputmode="numeric" class="form-control" placeholder="Ej: 50993563" required />
-            </div>
-            <div class="invalid-feedback">Ingrese el número de documento.</div>
-          </div>
-
+          <!-- Fila 1: Admisión + Tipo de documento -->
           <div class="row g-2">
-            <div class="col-md-6 mx-auto">
+            <div class="col-md-6">
+              <label for="numeroAdmision" class="form-label">Número de Admisión</label>
+              <input id="numeroAdmision" type="text" inputmode="numeric" class="form-control" placeholder="Ej: 163307" required />
+              <div class="form-text">Lo encuentras en tu orden o recibo.</div>
+              <div class="invalid-feedback">Ingrese el número de admisión.</div>
+            </div>
+            <div class="col-md-6">
+              <label for="tipoDocumento" class="form-label">Tipo de Documento</label>
+              <select id="tipoDocumento" class="form-select" required></select>
+              <div class="form-text"><span id="toggleTipos" class="toggle-link">mostrar más opciones</span></div>
+              <div class="invalid-feedback">Seleccione el tipo de documento.</div>
+            </div>
+          </div>
+
+          <!-- Fila 2: Documento + Fecha de nacimiento -->
+          <div class="row g-2 mt-1">
+            <div class="col-md-6">
+              <label for="numeroDocumento" class="form-label">Número de Documento</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                <input id="numeroDocumento" type="text" inputmode="numeric" class="form-control" placeholder="Ej: 50993563" required />
+              </div>
+              <div class="invalid-feedback">Ingrese el número de documento.</div>
+            </div>
+            <div class="col-md-6">
               <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento</label>
               <input id="fechaNacimiento" type="date" class="form-control" required />
               <div class="invalid-feedback">Seleccione la fecha de nacimiento.</div>
             </div>
           </div>
 
-          <div class="d-grid mt-3">
+          <!-- Botón al 60% -->
+          <div class="btn-wrap d-grid mt-3">
             <button id="btnSubmit" type="submit" class="btn btn-brand py-2">
               <span class="btn-label"><i class="bi bi-cloud-arrow-down-fill me-2"></i>Descargar resultado</span>
               <span class="btn-working d-none"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Procesando…</span>
@@ -228,7 +235,7 @@
     });
     renderTipos(false);
 
-    function onlyDigits(v){return(v||'').replace(/\\D+/g,'')}
+    function onlyDigits(v){return(v||'').replace(/\D+/g,'')}
     function camposCompletos(){
       return $('#numeroAdmision').value.trim()&&selTipo.value.trim()&&$('#numeroDocumento').value.trim()&&$('#fechaNacimiento').value
     }
