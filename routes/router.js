@@ -13,7 +13,7 @@ const { DescargarLaboratorio  } = require('./Controller/otro/laboratorio');
 // area de gereadorde url pdf
 router.get('/Hs_Anx', Hs_Anx);
 router.get('/facturaElectronica', FacturaElectronica);
-router.post('/laboratorio', DescargarLaboratorio);
+router.post('/DescargarLaboratorio', DescargarLaboratorio);
 
 
 //area de cosultas

@@ -1,16 +1,16 @@
 // routes/Controller/Laboratorio.js
-const axios = require('axios').default;
+const axios = require('axios');
 const { pipeline } = require('node:stream/promises');
 const { createToken } = require('../Base/toke');
 const {
   obtenerIds,
   obtenerIdsPorAdmision,
   obtenerIdentidadPorNumeroAdmision,
-} = require('../Base/ids'); // <- extrae tipo, número, fecha nac., fecha admisión y fecha emisión (factura)
+} = require('../Base/ids');
 
 const ALLOWED_MODES = new Set(['stream', 'redirect', 'json']);
 
-// Helpers de normalización (para comparar)
+// -------- Helpers de normalización --------
 function normStr(v) {
   if (v == null) return null;
   return String(v).trim();
@@ -37,27 +37,28 @@ function normDateOnly(v) {
   return `${y}-${m}-${day}`;
 }
 
+// -------- Controller principal --------
 async function DescargarLaboratorio(req, res) {
   const t0 = Date.now();
-  let upstream = null;
 
   try {
     const {
       institucionId,
       idUser,
+      // claves de búsqueda
       clave,
       numeroAdmision,
       idAdmision: idAdmisionRaw,
       mode = 'stream',
 
-      // ✅ Valores que envías para COMPARAR (no se “buscan”, solo se contrastan)
+      // ✅ Valores que envía el cliente SOLO para comparar (ya NO validamos fechaEmision)
       tipoDocumento: expectedTipoDocumento,
       numeroDocumento: expectedNumeroDocumento,
-      fechaEmision: expectedFechaEmision,
+      // fechaEmision: expectedFechaEmision,  // ← removido de validación
       fechaNacimiento: expectedFechaNacimiento,
     } = req.query;
 
-    // --- Input validation
+    // --- Validación de input base ---
     const faltantes = [];
     if (!institucionId) faltantes.push('institucionId');
     if (!idUser) faltantes.push('idUser');
@@ -66,6 +67,7 @@ async function DescargarLaboratorio(req, res) {
     if (faltantes.length) {
       return res.status(400).send(`❌ Faltan parámetros: ${faltantes.join(', ')}`);
     }
+
     const modeNorm = String(mode).toLowerCase();
     if (!ALLOWED_MODES.has(modeNorm)) {
       return res.status(400).send('❌ mode inválido. Use stream|redirect|json');
@@ -77,23 +79,12 @@ async function DescargarLaboratorio(req, res) {
       return res.status(400).send('❌ institucionId/idUser deben ser numéricos');
     }
 
-    // --- Resolver IDs + metadatos
+    // --- Resolver IDs + metadatos (intenta PRIMERO por numeroAdmision) ---
     const claveFinal = String(anyKey).trim();
-    let ids;
-    if (idAdmisionRaw && !clave && !numeroAdmision) {
-      ids = await obtenerIdsPorAdmision({
-        institucionId: instId,
-        idAdmision: Number(idAdmisionRaw),
-      });
-    } else {
-      ids = await obtenerIds({
-        institucionId: instId,
-        clave: claveFinal,
-      });
-    }
 
-    // Camino directo por numeroAdmision (obtiene tipo/num doc, fecha nac, fecha adm y fecha emisión)
     let identidadPorNumero = null;
+    let ids = null;
+
     if (numeroAdmision) {
       try {
         identidadPorNumero = await obtenerIdentidadPorNumeroAdmision({
@@ -103,9 +94,33 @@ async function DescargarLaboratorio(req, res) {
       } catch (_) { /* no-op */ }
     }
 
+    // Si no se encontró por numeroAdmision, intentamos con obtenerIds / obtenerIdsPorAdmision
+    if (!identidadPorNumero) {
+      try {
+        if (idAdmisionRaw && !clave && !numeroAdmision) {
+          ids = await obtenerIdsPorAdmision({
+            institucionId: instId,
+            idAdmision: Number(idAdmisionRaw),
+          });
+        } else {
+          ids = await obtenerIds({
+            institucionId: instId,
+            clave: claveFinal,
+          });
+        }
+      } catch (e) {
+        return res.status(404).json({
+          success: false,
+          error: 'No se encontró admisión/factura con los parámetros dados',
+          detalle: e?.message || null,
+          params: { institucionId: instId, numeroAdmision: numeroAdmision ?? null, clave: claveFinal || null, idAdmision: idAdmisionRaw || null },
+        });
+      }
+    }
+
     const resolvedAdmisionId =
-      Number(ids?.id_admision) ||
       Number(identidadPorNumero?.fk_admision) ||
+      Number(ids?.id_admision) ||
       Number(idAdmisionRaw) ||
       Number(numeroAdmision) ||
       (Number.isFinite(Number(claveFinal)) ? Number(claveFinal) : 0);
@@ -117,14 +132,12 @@ async function DescargarLaboratorio(req, res) {
       });
     }
 
-    // =============== BLOQUES DE COMPARACIÓN =================
+    // =============== BLOQUES DE COMPARACIÓN (sin fechaEmision) ===============
 
-    // A) Comparación contra valores ENVIADOS por el cliente (si los envía)
-    //    Solo comparamos campos que el cliente haya enviado.
+    // A) Comparación contra valores ENVIADOS por el cliente (solo si el cliente los envía)
     const provided = {
       tipoDocumento: normUpper(expectedTipoDocumento),
       numeroDocumento: normDigits(expectedNumeroDocumento),
-      fechaEmision: normDateOnly(expectedFechaEmision),
       fechaNacimiento: normDateOnly(expectedFechaNacimiento),
     };
 
@@ -132,7 +145,6 @@ async function DescargarLaboratorio(req, res) {
     const truth = {
       tipoDocumento: normUpper(identidadPorNumero?.tipo_documento ?? ids?.tipoDocumento),
       numeroDocumento: normDigits(identidadPorNumero?.numero_documento ?? ids?.numero_documento),
-      fechaEmision: normDateOnly(identidadPorNumero?.fecha_emision ?? null), // ids no trae emisión
       fechaNacimiento: normDateOnly(identidadPorNumero?.fecha_nacimiento ?? ids?.fecha_nacimiento),
     };
 
@@ -142,9 +154,6 @@ async function DescargarLaboratorio(req, res) {
     }
     if (provided.numeroDocumento && truth.numeroDocumento && provided.numeroDocumento !== truth.numeroDocumento) {
       mismatchesProvided.push({ campo: 'numeroDocumento', enviado: provided.numeroDocumento, bd: truth.numeroDocumento });
-    }
-    if (provided.fechaEmision && truth.fechaEmision && provided.fechaEmision !== truth.fechaEmision) {
-      mismatchesProvided.push({ campo: 'fechaEmision', enviado: provided.fechaEmision, bd: truth.fechaEmision });
     }
     if (provided.fechaNacimiento && truth.fechaNacimiento && provided.fechaNacimiento !== truth.fechaNacimiento) {
       mismatchesProvided.push({ campo: 'fechaNacimiento', enviado: provided.fechaNacimiento, bd: truth.fechaNacimiento });
@@ -160,21 +169,18 @@ async function DescargarLaboratorio(req, res) {
           enviados: {
             tipoDocumento: expectedTipoDocumento ?? null,
             numeroDocumento: expectedNumeroDocumento ?? null,
-            fechaEmision: expectedFechaEmision ?? null,
             fechaNacimiento: expectedFechaNacimiento ?? null,
           },
           bd: {
             tipoDocumento: identidadPorNumero?.tipo_documento ?? ids?.tipoDocumento ?? null,
             numeroDocumento: identidadPorNumero?.numero_documento ?? ids?.numero_documento ?? null,
-            fechaEmision: identidadPorNumero?.fecha_emision ?? null,
             fechaNacimiento: identidadPorNumero?.fecha_nacimiento ?? ids?.fecha_nacimiento ?? null,
           },
         },
       });
     }
 
-    // B) (Opcional) Comparación entre fuentes internas (ids vs identidadPorNumero).
-    //    Si NO quieres esta validación adicional, comenta este bloque.
+    // (Opcional) Comparación entre fuentes internas (ids vs identidadPorNumero).
     if (numeroAdmision && identidadPorNumero) {
       const a = {
         tipoDocumento: normUpper(ids?.tipoDocumento),
@@ -196,23 +202,16 @@ async function DescargarLaboratorio(req, res) {
       if (a.fechaNacimiento && b.fechaNacimiento && a.fechaNacimiento !== b.fechaNacimiento) {
         mismatchesInternal.push({ campo: 'fechaNacimiento', ids: a.fechaNacimiento, numero: b.fechaNacimiento });
       }
-      // Nota: fechaEmision pertenece a factura (solo disponible en identidadPorNumero), por eso no se compara aquí.
-
       if (mismatchesInternal.length > 0) {
         return res.status(409).json({
           success: false,
           error: '❌ Inconsistencia interna entre fuentes (ids vs numeroAdmision)',
-          detalle: {
-            idAdmision: resolvedAdmisionId,
-            mismatches: mismatchesInternal,
-          },
+          detalle: { idAdmision: resolvedAdmisionId, mismatches: mismatchesInternal },
         });
       }
     }
 
-    // ========================================================
-
-    // --- Armar URL del reporte (host fijo para evitar SSRF)
+    // =============== Construcción de URL de reporte y modos ===============
     const reporte = 'ListadoInformesResultadosLaboratorio';
     const modulo = 'Laboratorio';
     const token = createToken(reporte, instId, 83, userId);
@@ -232,10 +231,10 @@ async function DescargarLaboratorio(req, res) {
     const url = `${reportHost}/view.aspx?${urlParams.toString()}`;
     const filename = `laboratorio_${resolvedAdmisionId}.pdf`;
 
-    // --- Modos alternos
     if (modeNorm === 'redirect') {
       return res.redirect(302, url);
     }
+
     if (modeNorm === 'json') {
       return res.json({
         success: true,
@@ -243,27 +242,26 @@ async function DescargarLaboratorio(req, res) {
         idAdmision: resolvedAdmisionId,
         filename,
         url,
-        // Datos útiles en respuesta
+        // Datos útiles (solo informativos)
         tipoDocumento: identidadPorNumero?.tipo_documento ?? ids?.tipoDocumento ?? null,
         numeroDocumento: identidadPorNumero?.numero_documento ?? ids?.numero_documento ?? null,
         fechaNacimiento: identidadPorNumero?.fecha_nacimiento ?? ids?.fecha_nacimiento ?? null,
         fechaAdmision: identidadPorNumero?.fecha_admision ?? ids?.fecha_admision ?? null,
-        fechaEmision: identidadPorNumero?.fecha_emision ?? null,
+        fechaEmision: identidadPorNumero?.fecha_emision ?? null, // ← se expone como info, ya no se valida
         idFactura: identidadPorNumero?.id_factura ?? null,
         numeroFactura: identidadPorNumero?.numero_factura ?? ids?.numeroFactura ?? null,
       });
     }
 
-    // --- STREAM PDF con abort y pipeline
+    // --- STREAM PDF con abort y pipeline ---
     const controller = new AbortController();
-    const clientAborted = () => controller.abort();
-
-    req.on('close', clientAborted);
-    req.on('aborted', clientAborted);
+    const onAbort = () => controller.abort();
+    req.on('close', onAbort);
+    req.on('aborted', onAbort);
 
     const hardTimeout = setTimeout(() => controller.abort(), 35_000);
 
-    const upstream = await axios.get(url, {
+    const upstreamResp = await axios.get(url, {
       responseType: 'stream',
       timeout: 30_000,
       maxBodyLength: Infinity,
@@ -278,39 +276,38 @@ async function DescargarLaboratorio(req, res) {
       withCredentials: false,
     });
 
-    const ct = String(upstream.headers['content-type'] || '').toLowerCase();
-    const len = upstream.headers['content-length']
-      ? Number(upstream.headers['content-length'])
+    const ct = String(upstreamResp.headers['content-type'] || '').toLowerCase();
+    const len = upstreamResp.headers['content-length']
+      ? Number(upstreamResp.headers['content-length'])
       : null;
 
-    if (upstream.status !== 200 || !ct.includes('application/pdf') || len === 0) {
+    if (upstreamResp.status !== 200 || !ct.includes('application/pdf') || len === 0) {
       let errBody = '';
       try {
         errBody = await new Promise((resolve, reject) => {
           let data = '';
-          upstream.data.setEncoding('utf8');
-          upstream.data.on('data', (chunk) => (data += chunk));
-          upstream.data.on('end', () => resolve(data));
-          upstream.data.on('error', reject);
+          upstreamResp.data.setEncoding('utf8');
+          upstreamResp.data.on('data', (chunk) => (data += chunk));
+          upstreamResp.data.on('end', () => resolve(data));
+          upstreamResp.data.on('error', reject);
         });
       } catch {
         errBody = '[no se pudo leer el cuerpo de error]';
       }
       clearTimeout(hardTimeout);
 
-      const payload = {
+      return res.status(upstreamResp.status || 502).json({
         success: false,
         error: '❌ El servicio de reportes no devolvió un PDF',
         detalle: {
-          status: upstream.status,
+          status: upstreamResp.status,
           contentType: ct || null,
           contentLength: len ?? null,
           url,
           body: errBody?.slice(0, 1000),
           ms: Date.now() - t0,
         },
-      };
-      return res.status(upstream.status || 502).json(payload);
+      });
     }
 
     res.setHeader('Content-Type', 'application/pdf');
@@ -319,7 +316,7 @@ async function DescargarLaboratorio(req, res) {
     res.setHeader('X-Content-Type-Options', 'nosniff');
 
     try {
-      await pipeline(upstream.data, res);
+      await pipeline(upstreamResp.data, res);
     } finally {
       clearTimeout(hardTimeout);
     }
