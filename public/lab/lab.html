@@ -13,8 +13,8 @@
       --bg:#0b1220; --bg-card:rgba(255,255,255,.92); --line:#dfe8f3;
       --txt:#0f172a; --muted:#66768b; --brand:#2563eb; --brand-2:#06b6d4;
       --ok:#16a34a; --err:#dc2626;
-      --shadow-lg:0 24px 60px rgba(9,21,46,.22);
-      --shadow-md:0 12px 28px rgba(9,21,46,.15);
+      --shadow-lg:0 18px 48px rgba(9,21,46,.22);
+      --shadow-md:0 8px 22px rgba(9,21,46,.15);
     }
 
     html, body { height: 100%; }
@@ -22,6 +22,7 @@
       background: var(--bg);
       color: var(--txt);
       font-family: "Plus Jakarta Sans", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
+      font-size: 0.88rem; /* reducción de ~20% */
     }
 
     .page-wrap {
@@ -29,7 +30,7 @@
       min-height: 100svh;
       display: grid;
       place-items: center;
-      padding: clamp(16px, 3vw, 40px);
+      padding: clamp(12px, 2vw, 32px);
       isolation: isolate;
       overflow: hidden;
     }
@@ -43,74 +44,73 @@
     .page-wrap::after {
       content: "";
       position: absolute; inset: 0;
-      background: radial-gradient(1200px 600px at 70% -10%, rgba(37,99,235,.28), transparent 60%),
-                  radial-gradient(1000px 500px at -10% 100%, rgba(6,182,212,.26), transparent 50%),
+      background: radial-gradient(960px 480px at 70% -10%, rgba(37,99,235,.28), transparent 60%),
+                  radial-gradient(800px 400px at -10% 100%, rgba(6,182,212,.26), transparent 50%),
                   linear-gradient(180deg, rgba(2,6,23,.35), rgba(2,6,23,.45));
       z-index: -1;
     }
 
     .card-shell {
-      width: min(100%, 780px);
+      width: min(100%, 740px);
       margin-inline: auto;
     }
     .card-lab {
-      border-radius: 22px;
+      border-radius: 18px;
       background: var(--bg-card);
       border: 1px solid var(--line);
       box-shadow: var(--shadow-lg);
       backdrop-filter: blur(10px) saturate(1.08);
     }
 
-    .brand-chip{display:inline-flex;align-items:center;gap:.5rem;background:linear-gradient(90deg,rgba(59,130,246,.12),rgba(6,182,212,.12));color:#0f3a63;border:1px solid #d9e6f5;padding:.55rem .9rem;border-radius:999px;backdrop-filter:blur(6px)}
-    .hero-head{display:flex;gap:1rem;align-items:center;justify-content:center;flex-wrap:wrap;text-align:center}
-    .brand-img{width:165px;height:165px;border-radius:22px;display:grid;place-items:center;border:1px solid var(--line);background:linear-gradient(135deg,#eef4ff,#ecfeff);box-shadow:var(--shadow-md);padding:10px}
-    .brand-img img{width:100%;height:100%;object-fit:contain;border-radius:18px;filter:drop-shadow(0 6px 8px rgba(0,0,0,.3))}
+    .hero-head{display:flex;gap:.8rem;align-items:center;justify-content:center;flex-wrap:wrap;text-align:center}
+    .brand-img{width:130px;height:130px;border-radius:18px;display:grid;place-items:center;border:1px solid var(--line);background:linear-gradient(135deg,#eef4ff,#ecfeff);box-shadow:var(--shadow-md);padding:8px}
+    .brand-img img{width:100%;height:100%;object-fit:contain;border-radius:16px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25))}
 
-    .lead-sm{color:var(--muted)}
-    .badge-lite{background:linear-gradient(180deg,#f0f6ff,#eefbff);border:1px solid #dce8f6;color:#0f4c81;font-weight:600}
+    .lead-sm{color:var(--muted);font-size:0.9rem}
+    .badge-lite{background:linear-gradient(180deg,#f0f6ff,#eefbff);border:1px solid #dce8f6;color:#0f4c81;font-weight:600;font-size:0.85rem}
 
-    .form-control,.form-select{background:#fbfdff;border-color:#d8e5f2;color:var(--txt);border-radius:14px;padding:.8rem 1rem;transition:box-shadow .2s ease,border-color .2s ease}
-    .form-control:focus,.form-select:focus{border-color:var(--brand);box-shadow:0 0 0 .25rem rgba(37,99,235,.18)}
-    .input-group-text{background:#f3f8ff;border-color:#d8e5f2;color:#245d99;border-radius:14px}
+    .form-control,.form-select{background:#fbfdff;border-color:#d8e5f2;color:var(--txt);border-radius:12px;padding:.6rem .8rem;font-size:0.9rem;transition:box-shadow .2s ease,border-color .2s ease}
+    .form-control:focus,.form-select:focus{border-color:var(--brand);box-shadow:0 0 0 .2rem rgba(37,99,235,.18)}
+    .input-group-text{background:#f3f8ff;border-color:#d8e5f2;color:#245d99;border-radius:12px;font-size:0.9rem}
 
-    .btn-brand{background:linear-gradient(90deg,var(--brand) 0%,var(--brand-2) 100%);border:none;color:#fff;font-weight:800;border-radius:14px;box-shadow:0 10px 24px rgba(37,99,235,.25);transition:transform .06s ease,filter .15s ease,box-shadow .15s ease}
-    .btn-brand:hover{filter:brightness(1.06);box-shadow:0 14px 28px rgba(37,99,235,.28)}
+    .btn-brand{background:linear-gradient(90deg,var(--brand) 0%,var(--brand-2) 100%);border:none;color:#fff;font-weight:700;border-radius:12px;box-shadow:0 8px 20px rgba(37,99,235,.25);transition:transform .06s ease,filter .15s ease,box-shadow .15s ease;font-size:0.9rem;padding:.6rem}
+    .btn-brand:hover{filter:brightness(1.06);box-shadow:0 12px 22px rgba(37,99,235,.28)}
     .btn-brand:active{transform:translateY(1px)}
     .btn-brand:disabled{opacity:.75;box-shadow:none}
 
-    .toggle-link{cursor:pointer;color:#0f74c5;font-weight:600}
-    .help-row{border-top:1px dashed #e4eff8;color:var(--muted)}
-    .privacy{font-size:.95rem;color:var(--muted)}
+    .toggle-link{cursor:pointer;color:#0f74c5;font-weight:600;font-size:0.9rem}
+    .help-row{border-top:1px dashed #e4eff8;color:var(--muted);font-size:0.9rem}
+    .privacy{font-size:.85rem;color:var(--muted)}
     .text-success-soft{color:var(--ok)}
     .text-danger-soft{color:var(--err)}
 
     @media (max-width: 576px){
-      .brand-img{width:140px;height:140px}
+      .brand-img{width:110px;height:110px}
     }
   </style>
 </head>
 <body>
   <main class="page-wrap">
     <div class="card-shell">
-      <div class="card card-lab p-4 p-md-5" data-aos="fade-up" data-aos-duration="700">
+      <div class="card card-lab p-3 p-md-4" data-aos="fade-up" data-aos-duration="700">
         <div class="hero-head mb-3">
           <div class="brand-img">
             <img src="/lab/logo.png" alt="Logo del hospital">
           </div>
           <div>
-            <h1 class="h4 mb-1">Obtén tu resultado de laboratorio</h1>
+            <h1 class="h5 mb-1">Obtén tu resultado de laboratorio</h1>
             <p class="lead-sm mb-0">Verificamos tus datos y te entregamos el PDF de forma segura.</p>
           </div>
         </div>
 
-        <div class="d-flex flex-wrap gap-2 justify-content-center mb-4">
+        <div class="d-flex flex-wrap gap-2 justify-content-center mb-3">
           <span class="badge rounded-pill badge-lite"><i class="bi bi-shield-lock me-1"></i> Verificación segura</span>
           <span class="badge rounded-pill badge-lite"><i class="bi bi-file-earmark-pdf me-1"></i> PDF descargable</span>
           <span class="badge rounded-pill badge-lite"><i class="bi bi-clock me-1"></i> Proceso rápido</span>
         </div>
 
         <form id="formLab" class="needs-validation" novalidate>
-          <div class="mb-3">
+          <div class="mb-2">
             <label for="numeroAdmision" class="form-label">Número de Admisión</label>
             <input id="numeroAdmision" type="text" inputmode="numeric" class="form-control" placeholder="Ej: 163307" required />
             <div class="form-text">Lo encuentras en tu orden o recibo.</div>
@@ -124,7 +124,7 @@
             <div class="invalid-feedback">Seleccione el tipo de documento.</div>
           </div>
 
-          <div class="mb-3">
+          <div class="mb-2">
             <label for="numeroDocumento" class="form-label">Número de Documento</label>
             <div class="input-group">
               <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
@@ -133,7 +133,7 @@
             <div class="invalid-feedback">Ingrese el número de documento.</div>
           </div>
 
-          <div class="row g-3">
+          <div class="row g-2">
             <div class="col-md-6 mx-auto">
               <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento</label>
               <input id="fechaNacimiento" type="date" class="form-control" required />
@@ -141,19 +141,19 @@
             </div>
           </div>
 
-          <div class="d-grid mt-4">
-            <button id="btnSubmit" type="submit" class="btn btn-brand py-3">
+          <div class="d-grid mt-3">
+            <button id="btnSubmit" type="submit" class="btn btn-brand py-2">
               <span class="btn-label"><i class="bi bi-cloud-arrow-down-fill me-2"></i>Descargar resultado</span>
               <span class="btn-working d-none"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Procesando…</span>
             </button>
           </div>
 
-          <div id="out" class="form-text mt-3 text-center" aria-live="polite"></div>
+          <div id="out" class="form-text mt-2 text-center" aria-live="polite"></div>
         </form>
 
-        <div class="help-row mt-4 pt-3">
-          <div class="d-flex align-items-start gap-3 justify-content-center">
-            <div class="brand-img" style="width:46px;height:46px;border-radius:12px;">
+        <div class="help-row mt-3 pt-2">
+          <div class="d-flex align-items-start gap-2 justify-content-center">
+            <div class="brand-img" style="width:36px;height:36px;border-radius:10px;">
               <i class="bi bi-info-circle" style="color:#0a72bb"></i>
             </div>
             <div>
@@ -166,7 +166,7 @@
           </div>
         </div>
 
-        <div class="privacy mt-3 text-center">
+        <div class="privacy mt-2 text-center">
           <i class="bi bi-shield-check me-1"></i> Usamos tus datos únicamente para validar tu identidad y permitir la descarga del PDF.
         </div>
       </div>
@@ -228,7 +228,7 @@
     });
     renderTipos(false);
 
-    function onlyDigits(v){return(v||'').replace(/\D+/g,'')}
+    function onlyDigits(v){return(v||'').replace(/\\D+/g,'')}
     function camposCompletos(){
       return $('#numeroAdmision').value.trim()&&selTipo.value.trim()&&$('#numeroDocumento').value.trim()&&$('#fechaNacimiento').value
     }
