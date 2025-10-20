@@ -4,140 +4,189 @@
   <meta charset="utf-8" />
   <title>Resultados de Laboratorio — Descarga segura</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Tipografía -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
+  <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet" />
-  <style>
-    :root {
-      --bg:#0b1220; --bg-card:rgba(255,255,255,.92); --line:#dfe8f3;
-      --txt:#0f172a; --muted:#66768b; --brand:#2563eb; --brand-2:#06b6d4;
-      --ok:#16a34a; --err:#dc2626;
-      --shadow-lg:0 18px 48px rgba(9,21,46,.22);
-      --shadow-md:0 8px 22px rgba(9,21,46,.15);
-    }
 
-    html, body { height: 100%; }
-    body {
+  <style>
+    :root{
+      --bg:#0b1220; --surface:rgba(255,255,255,.94); --line:#e6eef7;
+      --txt:#0f172a; --muted:#64748b; --brand:#2563eb; --brand-2:#06b6d4;
+      --ok:#16a34a; --err:#dc2626; --card-radius:20px;
+      --shadow-lg:0 16px 44px rgba(6,16,36,.22);
+    }
+    html,body{height:100%}
+    body{
       background: var(--bg);
       color: var(--txt);
-      font-family: "Plus Jakarta Sans", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
-      font-size: 0.88rem; /* reducción de ~20% */
+      font-family:"Plus Jakarta Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      font-size:0.94rem;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
     }
 
-    .page-wrap {
-      position: relative;
-      min-height: 100svh;
-      display: grid;
-      place-items: center;
-      padding: clamp(12px, 2vw, 32px);
-      isolation: isolate;
-      overflow: hidden;
+    /* ===== Fondo animado con degradé sutil ===== */
+    .page-wrap{
+      min-height:100svh; display:grid; place-items:center;
+      padding:clamp(12px,2vw,32px); position:relative; isolation:isolate; overflow:hidden;
     }
-    .page-wrap::before {
-      content: "";
-      position: absolute; inset: 0;
-      background: url("/lab/fondo.jpg") center center / cover no-repeat fixed;
-      z-index: -2;
-      transform: scale(1.02);
+    .page-wrap::before{
+      content:""; position:absolute; inset:0; z-index:-2;
+      background:
+        radial-gradient(900px 420px at 80% -10%, rgba(37,99,235,.28), transparent 60%),
+        radial-gradient(700px 360px at -10% 100%, rgba(6,182,212,.26), transparent 50%),
+        linear-gradient(180deg, rgba(2,6,23,.55), rgba(2,6,23,.65)),
+        url("/lab/fondo.jpg") center/cover no-repeat fixed;
+      transform:scale(1.02);
+      filter:saturate(1.05);
     }
-    .page-wrap::after {
-      content: "";
-      position: absolute; inset: 0;
-      background: radial-gradient(960px 480px at 70% -10%, rgba(37,99,235,.28), transparent 60%),
-                  radial-gradient(800px 400px at -10% 100%, rgba(6,182,212,.26), transparent 50%),
-                  linear-gradient(180deg, rgba(2,6,23,.35), rgba(2,6,23,.45));
-      z-index: -1;
+    .page-wrap::after{
+      content:""; position:absolute; inset:-30% -10% -10% -10%; z-index:-1;
+      background:conic-gradient(from 180deg, rgba(37,99,235,.08), rgba(6,182,212,.06), transparent 40%);
+      animation: spinGlow 22s linear infinite;
     }
 
-    .card-shell {
-      width: min(100%, 740px);
-      margin-inline: auto;
+    @keyframes spinGlow { to { transform: rotate(360deg); } }
+
+    .card-shell{width:min(100%,760px); margin:auto}
+    .card-lab{
+      border-radius:var(--card-radius); background:var(--surface);
+      border:1px solid var(--line); box-shadow:var(--shadow-lg);
+      backdrop-filter: blur(10px) saturate(1.06);
+      transform-style: preserve-3d; perspective:1000px;
+      transition: box-shadow .25s ease, transform .15s ease;
     }
-    .card-lab {
-      border-radius: 18px;
-      background: var(--bg-card);
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow-lg);
-      backdrop-filter: blur(10px) saturate(1.08);
+    .card-lab.hovered{ box-shadow: 0 22px 60px rgba(37,99,235,.25); }
+
+    /* Animación de entrada */
+    .reveal{ opacity:0; transform: translateY(14px) scale(.98); animation: fadeUp .6s ease .1s forwards }
+    @keyframes fadeUp{
+      to{ opacity:1; transform: translateY(0) scale(1) }
     }
 
-    .hero-head{display:flex;gap:.8rem;align-items:center;justify-content:center;flex-wrap:wrap;text-align:center}
+    .title{ text-align:center; text-transform:uppercase; letter-spacing:1.6px; font-weight:800; color:#1f2a44; margin-bottom:.35rem }
+    .lead-sm{ color:var(--muted); font-size:.92rem }
 
-    .lead-sm{color:var(--muted);font-size:0.9rem}
-    .badge-lite{background:linear-gradient(180deg,#f0f6ff,#eefbff);border:1px solid #dce8f6;color:#0f4c81;font-weight:600;font-size:0.85rem}
+    .badge-lite{
+      background:linear-gradient(180deg,#f4f8ff,#f7fcff);
+      border:1px solid #e3eefb; color:#0f4c81; font-weight:700; font-size:.85rem;
+      transform: translateY(0); transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+      box-shadow: 0 4px 12px rgba(15,76,129,.06);
+      animation: popIn .5s ease forwards;
+    }
+    .badge-lite:hover{ transform: translateY(-2px); filter: brightness(1.03); box-shadow: 0 6px 16px rgba(15,76,129,.12) }
+    .badges-stagger > .badge-lite{ opacity:0 }
+    .badges-stagger > .badge-lite:nth-child(1){ animation-delay:.15s }
+    .badges-stagger > .badge-lite:nth-child(2){ animation-delay:.28s }
+    .badges-stagger > .badge-lite:nth-child(3){ animation-delay:.41s }
+    @keyframes popIn{ from{opacity:0; transform: translateY(8px) scale(.98)} to{opacity:1; transform:none} }
 
-    .form-control,.form-select{background:#fbfdff;border-color:#d8e5f2;color:var(--txt);border-radius:12px;padding:.6rem .8rem;font-size:0.9rem;transition:box-shadow .2s ease,border-color .2s ease}
-    .form-control:focus,.form-select:focus{border-color:var(--brand);box-shadow:0 0 0 .2rem rgba(37,99,235,.18)}
-    .input-group-text{background:#f3f8ff;border-color:#d8e5f2;color:#245d99;border-radius:12px;font-size:0.9rem}
+    .form-control,.form-select{
+      background:#fbfdff; border-color:#d8e5f2; color:var(--txt);
+      border-radius:12px; padding:.7rem .9rem; font-size:.95rem;
+      transition: box-shadow .2s ease,border-color .2s ease, transform .08s ease;
+    }
+    .form-control:focus,.form-select:focus{ border-color:var(--brand); box-shadow:0 0 0 .2rem rgba(37,99,235,.18) }
+    .form-control:active,.form-select:active{ transform: scale(.995) }
+    .input-group-text{ background:#f3f8ff; border-color:#d8e5f2; color:#245d99; border-radius:12px; font-size:.95rem }
 
-    .btn-brand{background:linear-gradient(90deg,var(--brand) 0%,var(--brand-2) 100%);border:none;color:#fff;font-weight:700;border-radius:12px;box-shadow:0 8px 20px rgba(37,99,235,.25);transition:transform .06s ease,filter .15s ease,box-shadow .15s ease;font-size:0.9rem;padding:.6rem}
-    .btn-brand:hover{filter:brightness(1.06);box-shadow:0 12px 22px rgba(37,99,235,.28)}
-    .btn-brand:active{transform:translateY(1px)}
-    .btn-brand:disabled{opacity:.75;box-shadow:none}
+    .btn-brand{
+      position:relative; overflow:hidden;
+      background:linear-gradient(90deg,var(--brand),var(--brand-2));
+      border:none; color:#fff; font-weight:800; border-radius:12px;
+      box-shadow:0 10px 22px rgba(37,99,235,.25);
+      transition: transform .08s ease, filter .15s ease, box-shadow .15s ease;
+      font-size:.98rem; padding:.85rem 1rem;
+      will-change: transform;
+    }
+    .btn-brand:hover{ filter:brightness(1.06); box-shadow:0 14px 26px rgba(37,99,235,.28) }
+    .btn-brand:active{ transform: translateY(1px) scale(.995) }
+    .btn-brand:disabled{ opacity:.75; box-shadow:none }
+    .btn-brand .ripple{ position:absolute; border-radius:50%; transform: scale(0); animation:ripple .6s ease-out; background:rgba(255,255,255,.35); pointer-events:none }
+    @keyframes ripple{ to{ transform: scale(16); opacity:0 } }
 
-    /* Contenedor del botón al 60% */
-    .btn-wrap{width:60%;margin-inline:auto}
-    @media (max-width: 576px){ .btn-wrap{width:100%} }
+    .btn-wrap{ width:60%; margin-inline:auto }
+    @media (max-width:576px){ .btn-wrap{ width:100% } }
 
-    .toggle-link{cursor:pointer;color:#0f74c5;font-weight:600;font-size:0.9rem}
-    .help-row{border-top:1px dashed #e4eff8;color:var(--muted);font-size:0.9rem}
-    .privacy{font-size:.85rem;color:var(--muted)}
-    .text-success-soft{color:var(--ok)}
-    .text-danger-soft{color:var(--err)}
+    .toggle-link{ cursor:pointer; color:#0f74c5; font-weight:700; font-size:.92rem; display:inline-flex; align-items:center; gap:.35rem }
+    .toggle-link i{ transition: transform .2s ease }
+    .toggle-link[aria-expanded="true"] i{ transform: rotate(180deg) }
 
-    @media (max-width: 576px){
-      .brand-img{width:110px;height:110px}
+    .help-row{ border-top:1px dashed #e7eef7; color:var(--muted); font-size:.92rem }
+    .privacy{ font-size:.85rem; color:var(--muted) }
+    .text-success-soft{ color:var(--ok) }
+    .text-danger-soft{ color:var(--err) }
+
+    /* Check animado para el mensaje de éxito */
+    .check{ width:22px; height:22px; vertical-align:-4px }
+    .check path{ stroke: var(--ok); stroke-width:3; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 26; stroke-dashoffset: 26; animation: draw .6s ease forwards }
+    @keyframes draw{ to{ stroke-dashoffset: 0 } }
+
+    /* Modo oscuro opcional por preferencia del SO */
+    @media (prefers-color-scheme: dark){
+      :root{ --surface:rgba(19,26,40,.86); --line:#263247; --txt:#eaf0ff; --muted:#9fb2cf }
+      .title{ color:#dfe8ff }
+      .badge-lite{ background:linear-gradient(180deg,#0d1a32,#0e2037); border-color:#263247; color:#bcd8ff }
+      .form-control,.form-select{ background:#0e1626; border-color:#22304a }
+      .input-group-text{ background:#0e1626; border-color:#22304a; color:#a6c1ff }
+    }
+
+    /* Respeto a reduce motion */
+    @media (prefers-reduced-motion: reduce){
+      *, *::before, *::after{ animation: none !important; transition: none !important }
     }
   </style>
 </head>
+
 <body>
   <main class="page-wrap">
     <div class="card-shell">
-      <div class="card card-lab p-3 p-md-4" data-aos="fade-up" data-aos-duration="700">
-        <div class="hero-head mb-3">
+      <div class="card card-lab p-3 p-md-4 reveal" id="card">
+        <img src="/lab/logo.png" alt="Logo del hospital" width="210" height="auto" class="d-block mx-auto mb-1" />
 
-            <img src="/lab/logo.png" alt="Logo del hospital" width="150" height="120">
+        <h1 class="h5 title">Obtén tu resultado de laboratorio</h1>
 
-          <div>
-            <h1 class="h5 mb-1">Obtén tu resultado de laboratorio</h1>
-            <p class="lead-sm mb-0">Verificamos tus datos y te entregamos el PDF de forma segura.</p>
-          </div>
-        </div>
-
-        <div class="d-flex flex-wrap gap-2 justify-content-center mb-3">
+        <div class="d-flex flex-wrap gap-2 justify-content-center mb-3 badges-stagger">
           <span class="badge rounded-pill badge-lite"><i class="bi bi-shield-lock me-1"></i> Verificación segura</span>
           <span class="badge rounded-pill badge-lite"><i class="bi bi-file-earmark-pdf me-1"></i> PDF descargable</span>
           <span class="badge rounded-pill badge-lite"><i class="bi bi-clock me-1"></i> Proceso rápido</span>
         </div>
 
         <form id="formLab" class="needs-validation" novalidate>
-          <!-- Fila 1: Admisión + Tipo de documento -->
+          <!-- Fila 1 -->
           <div class="row g-2">
             <div class="col-md-6">
               <label for="numeroAdmision" class="form-label">Número de Admisión</label>
-              <input id="numeroAdmision" type="text" inputmode="numeric" class="form-control" placeholder="Ej: 163307" required />
+              <input id="numeroAdmision" type="text" inputmode="numeric" autocomplete="off" class="form-control" placeholder="Ej: 163307" required />
               <div class="form-text">Lo encuentras en tu orden o recibo.</div>
               <div class="invalid-feedback">Ingrese el número de admisión.</div>
             </div>
+
             <div class="col-md-6">
               <label for="tipoDocumento" class="form-label">Tipo de Documento</label>
-              <select id="tipoDocumento" class="form-select" required></select>
-              <div class="form-text"><span id="toggleTipos" class="toggle-link">mostrar más opciones</span></div>
+              <select id="tipoDocumento" class="form-select" required aria-describedby="tiposHelp"></select>
+              <div id="tiposHelp" class="form-text">
+                <button id="toggleTipos" type="button" class="btn btn-link p-0 toggle-link" aria-expanded="false">
+                  <i class="bi bi-chevron-down"></i> mostrar más opciones
+                </button>
+              </div>
               <div class="invalid-feedback">Seleccione el tipo de documento.</div>
             </div>
           </div>
 
-          <!-- Fila 2: Documento + Fecha de nacimiento -->
+          <!-- Fila 2 -->
           <div class="row g-2 mt-1">
             <div class="col-md-6">
               <label for="numeroDocumento" class="form-label">Número de Documento</label>
               <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
-                <input id="numeroDocumento" type="text" inputmode="numeric" class="form-control" placeholder="Ej: 50993563" required />
+                <span class="input-group-text" id="doc-addon"><i class="bi bi-person-badge" aria-hidden="true"></i></span>
+                <input id="numeroDocumento" type="text" inputmode="numeric" autocomplete="off" class="form-control" aria-describedby="doc-addon" placeholder="Ej: 50993563" required />
               </div>
               <div class="invalid-feedback">Ingrese el número de documento.</div>
             </div>
+
             <div class="col-md-6">
               <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento</label>
               <input id="fechaNacimiento" type="date" class="form-control" required />
@@ -145,98 +194,68 @@
             </div>
           </div>
 
-          <!-- Botón al 60% -->
+          <!-- Botón -->
           <div class="btn-wrap d-grid mt-3">
-            <button id="btnSubmit" type="submit" class="btn btn-brand py-2">
+            <button id="btnSubmit" type="submit" class="btn btn-brand">
               <span class="btn-label"><i class="bi bi-cloud-arrow-down-fill me-2"></i>Descargar resultado</span>
               <span class="btn-working d-none"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Procesando…</span>
             </button>
           </div>
 
-          <div id="out" class="form-text mt-2 text-center" aria-live="polite"></div>
+          <div id="out" class="form-text mt-2 text-center" aria-live="polite" role="status"></div>
         </form>
 
         <div class="help-row mt-3 pt-2">
           <div class="d-flex align-items-start gap-2 justify-content-center">
-            <div class="brand-img" style="width:36px;height:36px;border-radius:10px;">
-              <i class="bi bi-info-circle" style="color:#0a72bb"></i>
-            </div>
+            <i class="bi bi-info-circle fs-5" style="color:#0a72bb"></i>
             <div>
               <strong>¿Necesitas ayuda?</strong>
               <div class="small text-body-secondary">
-                Verifica que el número de admisión, tipo y número de documento, y la fecha de nacimiento sean correctos.<br />
-                Soporte: <a href="mailto:soporte@laboratorio.com" class="link-light text-decoration-underline">soporte@laboratorio.com</a>
+                Verifica número de admisión, tipo y número de documento y la fecha de nacimiento.<br />
+                Soporte: <a href="mailto:soporte@laboratorio.com" class="link-dark text-decoration-underline">soporte@laboratorio.com</a>
               </div>
             </div>
           </div>
         </div>
 
         <div class="privacy mt-2 text-center">
-          <i class="bi bi-shield-check me-1"></i> Usamos tus datos únicamente para validar tu identidad y permitir la descarga del PDF.
+          <i class="bi bi-shield-check me-1" aria-hidden="true"></i>
+          Usamos tus datos únicamente para validar tu identidad y permitir la descarga del PDF.
         </div>
       </div>
     </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
   <script>
-    AOS.init();
+    // ===== CONFIG =====
     const BASE_URL = "https://total-oeyx.onrender.com";
     const ROUTE_PATH = "/DescargarLaboratorio";
     const INSTITUCION_ID = 20;
     const USER_ID = 6874;
+
+    // ===== HELPERS =====
     const $ = (s,r=document)=>r.querySelector(s);
-    const form=$('#formLab');
+    const form = $('#formLab');
 
-    function setWorking(w){
-      const b=$('#btnSubmit');
-      b.disabled=w;
-      $('.btn-label',b).classList.toggle('d-none',w);
-      $('.btn-working',b).classList.toggle('d-none',!w)
+    function setWorking(on){
+      const b = $('#btnSubmit');
+      b.disabled = on;
+      $('.btn-label', b).classList.toggle('d-none', on);
+      $('.btn-working', b).classList.toggle('d-none', !on);
     }
-    function msg(t,o=true){
-      $('#out').innerHTML=o?`<span class='text-success-soft'><i class='bi bi-check2-circle me-1'></i>${t}</span>`:`<span class='text-danger-soft'><i class='bi bi-x-circle me-1'></i>${t}</span>`
+    function successMsg(text){
+      $('#out').innerHTML = `<span class="text-success-soft"><svg class="check" viewBox="0 0 24 24"><path d="M4 12l5 5 11-11"></path></svg> ${text}</span>`;
     }
-
-    const TIPOS_ALL=[
-      {code:'AS',label:'Adulto sin identificación'},
-      {code:'CC',label:'Cédula de Ciudadanía'},
-      {code:'CE',label:'Cédula de Extranjería'},
-      {code:'TI',label:'Tarjeta de Identidad'},
-      {code:'RC',label:'Registro Civil'},
-      {code:'PA',label:'Pasaporte'},
-      {code:'PE',label:'Permiso Especial'},
-      {code:'PEP',label:'Permiso Especial de Permanencia'}
-    ];
-    const TIPOS_COMUNES=['CC','TI','RC','PE'];
-    const selTipo=$('#tipoDocumento');
-    const toggle=$('#toggleTipos');
-    let showAll=false;
-
-    function renderTipos(a=false){
-      const l=a?TIPOS_ALL:TIPOS_ALL.filter(t=>TIPOS_COMUNES.includes(t.code));
-      selTipo.innerHTML='';
-      l.forEach(t=>{
-        const o=document.createElement('option');
-        o.value=t.code;
-        o.textContent=`${t.code} — ${t.label}`;
-        selTipo.appendChild(o)
-      });
-      selTipo.value='CC'
+    function errorMsg(text){
+      $('#out').innerHTML = `<span class="text-danger-soft"><i class="bi bi-x-circle me-1"></i>${text}</span>`;
     }
-
-    toggle.addEventListener('click',()=>{
-      showAll=!showAll;
-      renderTipos(showAll);
-      toggle.textContent=showAll?'mostrar opciones comunes':'mostrar más opciones'
-    });
-    renderTipos(false);
-
-    function onlyDigits(v){return(v||'').replace(/\D+/g,'')}
-    function camposCompletos(){
-      return $('#numeroAdmision').value.trim()&&selTipo.value.trim()&&$('#numeroDocumento').value.trim()&&$('#fechaNacimiento').value
-    }
+    const onlyDigits = v => (v||"").replace(/\D+/g,"");
+    const camposCompletos = () =>
+      $('#numeroAdmision').value.trim() &&
+      $('#tipoDocumento').value.trim() &&
+      $('#numeroDocumento').value.trim() &&
+      $('#fechaNacimiento').value;
 
     function buildParams({numeroAdmision,tipoDocumento,numeroDocumento,fechaNacimiento,mode='json'}){
       return new URLSearchParams({
@@ -247,58 +266,179 @@
         numeroDocumento:String(numeroDocumento),
         fechaNacimiento,
         mode
-      }).toString()
+      }).toString();
     }
 
-    async function validateDatos(p){
-      const u=`${BASE_URL}${ROUTE_PATH}?${buildParams({...p,mode:'json'})}`;
-      const r=await fetch(u,{method:'POST'});
-      if(!r.ok)throw new Error('Error validando datos');
-      const d=await r.json();
-      if(!d?.success||!d?.url)throw new Error('Datos no válidos');
-      return d
+    async function validarDatos(payload){
+      const url = `${BASE_URL}${ROUTE_PATH}?${buildParams({...payload,mode:'json'})}`;
+      const res = await fetch(url,{method:'POST'});
+      if(!res.ok) throw new Error('Error validando datos');
+      const data = await res.json();
+      if(!data?.success || !data?.url) throw new Error('Datos no válidos');
+      return data;
     }
 
-    async function descargarPDF(p,f='Resultado_Laboratorio.pdf'){
-      const u=`${BASE_URL}${ROUTE_PATH}?${buildParams({...p,mode:'stream'})}`;
-      const r=await fetch(u,{method:'POST',headers:{Accept:'application/pdf'}});
-      const ct=r.headers.get('Content-Type')||'';
-      const b=await r.blob();
-      if(!r.ok||!ct.includes('application/pdf')||b.size<5*1024)throw new Error('No se pudo descargar el PDF');
-      const a=document.createElement('a');
-      a.href=URL.createObjectURL(b);
-      a.download=f;
+    async function descargarPDF(payload, filename='Resultado_Laboratorio.pdf'){
+      const url = `${BASE_URL}${ROUTE_PATH}?${buildParams({...payload,mode:'stream'})}`;
+      const res = await fetch(url,{method:'POST',headers:{Accept:'application/pdf'}});
+      const ct = res.headers.get('Content-Type') || '';
+      const blob = await res.blob();
+      if(!res.ok || !ct.includes('application/pdf') || blob.size < 5*1024){
+        throw new Error('No se pudo descargar el PDF');
+      }
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a)
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
     }
 
-    form.addEventListener('submit',async e=>{
-      e.preventDefault();
-      if(!form.checkValidity()||!camposCompletos()){
-        form.classList.add('was-validated');
-        msg('Debe completar los campos obligatorios.',false);
-        return
+    // ===== Tipos de documento =====
+    const TIPOS_ALL = [
+      {code:'AS',label:'Adulto sin identificación'},
+      {code:'CC',label:'Cédula de Ciudadanía'},
+      {code:'CE',label:'Cédula de Extranjería'},
+      {code:'TI',label:'Tarjeta de Identidad'},
+      {code:'RC',label:'Registro Civil'},
+      {code:'PA',label:'Pasaporte'},
+      {code:'PE',label:'Permiso Especial'},
+      {code:'PEP',label:'Permiso Especial de Permanencia'}
+    ];
+    const TIPOS_COMUNES = ['CC','TI','RC','PE'];
+    const selTipo = $('#tipoDocumento');
+    const toggleBtn = $('#toggleTipos');
+    let mostrandoTodos = false;
+
+    function renderTipos(all=false){
+      const lista = all ? TIPOS_ALL : TIPOS_ALL.filter(t => TIPOS_COMUNES.includes(t.code));
+      selTipo.innerHTML = '';
+      for(const t of lista){
+        const opt = document.createElement('option');
+        opt.value = t.code;
+        opt.textContent = `${t.code} — ${t.label}`;
+        selTipo.appendChild(opt);
       }
-      const p={
-        numeroAdmision:onlyDigits($('#numeroAdmision').value.trim()),
-        tipoDocumento:selTipo.value.trim().toUpperCase(),
-        numeroDocumento:onlyDigits($('#numeroDocumento').value.trim()),
-        fechaNacimiento:$('#fechaNacimiento').value
+      selTipo.value = 'CC';
+    }
+
+    toggleBtn.addEventListener('click', ()=>{
+      mostrandoTodos = !mostrandoTodos;
+      renderTipos(mostrandoTodos);
+      toggleBtn.setAttribute('aria-expanded', String(mostrandoTodos));
+      toggleBtn.innerHTML = `${mostrandoTodos ? '<i class="bi bi-chevron-up"></i> mostrar opciones comunes' : '<i class=\"bi bi-chevron-down\"></i> mostrar más opciones'}`;
+    });
+
+    renderTipos(false);
+
+    // ===== Envío del formulario =====
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+
+      if(!form.checkValidity() || !camposCompletos()){
+        form.classList.add('was-validated');
+        errorMsg('Debe completar los campos obligatorios.');
+        return;
+      }
+
+      const payload = {
+        numeroAdmision: onlyDigits($('#numeroAdmision').value.trim()),
+        tipoDocumento: selTipo.value.trim().toUpperCase(),
+        numeroDocumento: onlyDigits($('#numeroDocumento').value.trim()),
+        fechaNacimiento: $('#fechaNacimiento').value
       };
+
       setWorking(true);
-      msg('Verificando datos…');
+      successMsg('Verificando datos…');
       try{
-        await validateDatos(p);
-        msg('Descargando reporte…');
-        await descargarPDF(p,`Resultado_Laboratorio_${p.numeroAdmision}.pdf`);
-        msg('Descarga completada.',true)
+        await validarDatos(payload);
+        successMsg('Descargando reporte…');
+        await descargarPDF(payload, `Resultado_Laboratorio_${payload.numeroAdmision}.pdf`);
+        successMsg('¡Descarga completada!');
+        celebrate('#card');
       }catch(err){
-        msg(err.message||'Error en la descarga',false)
+        errorMsg(err?.message || 'Error en la descarga');
+        shake('#card');
       }finally{
-        setWorking(false)
+        setWorking(false);
       }
     });
+
+    // Reset de validación al escribir
+    ['numeroAdmision','numeroDocumento','fechaNacimiento','tipoDocumento'].forEach(id=>{
+      $(`#${id}`).addEventListener('input', ()=>{ if(form.classList.contains('was-validated')) form.classList.remove('was-validated'); });
+    });
+
+    // ===== Microinteracciones =====
+    // Ripple en el botón principal
+    const btn = document.getElementById('btnSubmit');
+    btn.addEventListener('click', (e)=>{
+      const rect = btn.getBoundingClientRect();
+      const span = document.createElement('span');
+      const size = Math.max(rect.width, rect.height);
+      span.className = 'ripple';
+      span.style.width = span.style.height = size + 'px';
+      span.style.left = (e.clientX - rect.left - size/2) + 'px';
+      span.style.top = (e.clientY - rect.top - size/2) + 'px';
+      btn.appendChild(span);
+      setTimeout(()=> span.remove(), 650);
+    });
+
+    // Tilt sutil del card con el mouse
+    const card = document.getElementById('card');
+    const maxTilt = 6; // grados
+    function handleTilt(e){
+      const b = card.getBoundingClientRect();
+      const cx = b.left + b.width/2, cy = b.top + b.height/2;
+      const dx = (e.clientX - cx) / (b.width/2);
+      const dy = (e.clientY - cy) / (b.height/2);
+      card.style.transform = `rotateX(${(-dy*maxTilt).toFixed(2)}deg) rotateY(${(dx*maxTilt).toFixed(2)}deg)`;
+      card.classList.add('hovered');
+    }
+    function resetTilt(){ card.style.transform = 'rotateX(0deg) rotateY(0deg)'; card.classList.remove('hovered'); }
+    card.addEventListener('mousemove', handleTilt);
+    card.addEventListener('mouseleave', resetTilt);
+
+    // Shake en error
+    function shake(sel){
+      const el = document.querySelector(sel);
+      el.animate([
+        { transform:'translateX(0)' },
+        { transform:'translateX(-6px)' },
+        { transform:'translateX(6px)' },
+        { transform:'translateX(-4px)' },
+        { transform:'translateX(4px)' },
+        { transform:'translateX(0)' },
+      ], { duration: 420, easing:'ease-in-out' });
+    }
+
+    // Confetti simple con CSS/DOM (ligero)
+    function celebrate(sel){
+      const host = document.querySelector(sel);
+      const frag = document.createDocumentFragment();
+      const pieces = 24;
+      for(let i=0;i<pieces;i++){
+        const p = document.createElement('i');
+        const r = Math.random;
+        const size = 6 + r()*8; // 6-14px
+        p.style.position='absolute';
+        p.style.width = size+'px'; p.style.height = size+'px';
+        p.style.left = (host.clientWidth/2)+'px';
+        p.style.top = '10px';
+        p.style.background = `hsl(${~~(r()*360)} 90% 60%)`;
+        p.style.borderRadius = r()>.5 ? '50%' : '4px';
+        p.style.pointerEvents='none';
+        p.style.mixBlendMode='plus-lighter';
+        p.animate([
+          { transform:`translate(0,0) rotate(0deg)`, opacity:1 },
+          { transform:`translate(${(r()*2-1)*220}px, ${160 + r()*140}px) rotate(${~~(r()*360)}deg)`, opacity:0 }
+        ], { duration: 900 + r()*600, easing:'cubic-bezier(.2,.7,.1,1)' });
+        frag.appendChild(p);
+        setTimeout(()=> p.remove(), 1700);
+      }
+      host.appendChild(frag);
+    }
   </script>
 </body>
 </html>
