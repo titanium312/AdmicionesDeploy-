@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>Cambiar fecha de emisión por Admisión</title>
+  <title>Cambiar fecha de emisión / Generar factura por Admisión</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root{
@@ -23,17 +23,19 @@
     }
     *{box-sizing:border-box}
     body{margin:0;background:linear-gradient(180deg,var(--bg),#070b18);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial;}
-    .shell{max-width:1000px;margin:32px auto;padding:0 16px}
+    .shell{max-width:1040px;margin:32px auto;padding:0 16px}
     .title{display:flex;align-items:center;gap:12px;margin-bottom:18px}
     .title h1{font-size:22px;margin:0}
     .card{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
     .card .hd{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
     .card .bd{padding:18px 20px}
     .grid{display:grid;gap:16px;grid-template-columns:repeat(12,1fr)}
+    .grid .col-3{grid-column:span 3}
     .grid .col-4{grid-column:span 4}
     .grid .col-6{grid-column:span 6}
+    .grid .col-8{grid-column:span 8}
     .grid .col-12{grid-column:span 12}
-    @media(max-width:900px){.grid .col-4,.grid .col-6{grid-column:span 12}}
+    @media(max-width:900px){.grid .col-3,.grid .col-4,.grid .col-6,.grid .col-8{grid-column:span 12}}
     label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
     input,textarea{width:100%;padding:12px;background:#0e1430;color:var(--text);border:1px solid var(--border);border-radius:12px}
     textarea{min-height:160px;resize:vertical}
@@ -51,34 +53,46 @@
     .pill.run{background:rgba(241,196,15,.1);color:var(--warn)}
     .kbd{font-family:monospace;background:#0f1733;border:1px solid var(--border);padding:2px 6px;border-radius:6px}
     .muted{color:var(--muted)}
+    .chips{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .chip{display:flex;gap:8px;align-items:center;background:#0f1733;border:1px solid var(--border);padding:8px 10px;border-radius:12px}
+    .chip input{width:auto;accent-color:#7aa2ff}
+    .hint{font-size:12px;color:var(--muted)}
   </style>
 </head>
 <body>
   <div class="shell">
     <div class="title">
-      <h1>🧾 Cambiar fecha de emisión por Admisión</h1>
+      <h1>🧾 Cambiar fecha de emisión / Generar factura por Admisión</h1>
     </div>
     <div class="card">
       <div class="hd">
-        <span class="muted">Automatiza el cambio de fecha por número de admisión</span>
+        <span class="muted">Automatiza acciones por número de admisión</span>
         <button id="btnClear" class="btn ghost">Limpiar</button>
       </div>
       <div class="bd">
         <div class="grid">
-          <div class="col-4">
+          <div class="col-3">
             <label>Institución ID</label>
             <input id="institucionId" type="number" min="1" value="20" />
           </div>
-          <div class="col-4">
-            <label>Fecha de emisión</label>
-            <input id="fechaEmision" type="date" />
+          <div class="col-6">
+            <label>Qué deseas hacer</label>
+            <div class="chips" role="group" aria-label="Opciones de proceso">
+              <label class="chip"><input id="chkFactura" type="checkbox" checked> Generar número de factura</label>
+              <label class="chip"><input id="chkFecha" type="checkbox"> Cambiar fecha de emisión</label>
+            </div>
+            <div class="hint">Puedes marcar una o ambas opciones. Si marcas ambas, primero se genera la factura y luego se cambia la fecha.</div>
           </div>
+          <div class="col-3">
+            <label>Fecha de emisión</label>
+            <input id="fechaEmision" type="date" disabled />
+          </div>
+
           <div class="col-12">
             <label>Números de admisión (uno por línea)</label>
-            <textarea id="admisiones" placeholder="142811
-144140
-..."></textarea>
+            <textarea id="admisiones" placeholder="142811\n144140\n..."></textarea>
           </div>
+
           <div class="col-12" style="display:flex;gap:10px;align-items:center">
             <button id="btnStart" class="btn">Iniciar</button>
             <button id="btnStop" class="btn secondary">Detener</button>
@@ -94,6 +108,7 @@
           <thead>
             <tr>
               <th>Admisión</th>
+              <th>Acción</th>
               <th>Estado</th>
               <th>Mensaje</th>
               <th>ID Facturas</th>
@@ -111,7 +126,8 @@
     // ⚙️ CONFIGURACIÓN
     // ==============================================
     const urlBase = 'https://total-oeyx.onrender.com';  // ← cámbiala si lo subes a hosting
-    const ENDPOINT_PATH = '/cambiar-fecha';
+    const PATH_CAMBIAR_FECHA = '/cambiar-fecha';
+    const PATH_POR_ADMISION  = '/por-admision';
     const CONCURRENCY = 1;
 
     const el = (id)=>document.getElementById(id);
@@ -123,29 +139,36 @@
     const now = ()=> new Date().toLocaleTimeString();
     const sanitize = t=>t.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
 
-    const row = adm=>{
+    const actionLabel = (key)=> key==='factura' ? 'Generar factura' : 'Cambiar fecha';
+
+    const row = (adm, action)=>{
       const tr=document.createElement('tr');
       tr.dataset.adm=adm;
+      tr.dataset.action=action;
       tr.innerHTML=`<td><span class="kbd">${adm}</span></td>
+        <td>${actionLabel(action)}</td>
         <td><span class="pill run">Pendiente</span></td>
         <td class="muted">—</td><td class="muted">—</td><td class="muted">${now()}</td>`;
       return tr;
     };
 
-    function setRow(adm,state,msg,ids){
-      const tr=$tbl.querySelector(`tr[data-adm="${adm}"]`);
+    function setRow(adm, action, state, msg, ids){
+      const tr=[...$tbl.querySelectorAll(`tr[data-adm="${adm}"]`)].find(r=>r.dataset.action===action);
       if(!tr)return;
-      tr.children[1].innerHTML=
+      tr.children[2].innerHTML=
         state==='ok'?'<span class="pill ok">OK</span>':
         state==='err'?'<span class="pill err">Error</span>':
         '<span class="pill run">En proceso</span>';
-      tr.children[2].textContent=msg||'';
-      tr.children[3].textContent=Array.isArray(ids)?ids.join(', '):(ids||'—');
-      tr.children[4].textContent=now();
+      tr.children[3].textContent=msg||'';
+      tr.children[4].textContent=Array.isArray(ids)?ids.join(', '):(ids||'—');
+      tr.children[5].textContent=now();
     }
 
-    async function callBackend({institucionId,numeroAdmision,fechaEmision}){
-      const url=urlBase+ENDPOINT_PATH;
+    // =============================
+    // 📡 Llamados al backend
+    // =============================
+    async function callCambiarFecha({institucionId,numeroAdmision,fechaEmision}){
+      const url=urlBase+PATH_CAMBIAR_FECHA;
       const res=await fetch(url,{
         method:'POST',
         headers:{'Content-Type':'application/json'},
@@ -155,37 +178,87 @@
       return res.json();
     }
 
+    async function callGenerarFactura({institucionId,numeroAdmision}){
+      const qs = new URLSearchParams({institucionId:String(institucionId),numeroAdmision:String(numeroAdmision)});
+      const url = `${urlBase+PATH_POR_ADMISION}?${qs.toString()}`;
+      const res = await fetch(url, { method:'GET', headers:{'Content-Type':'application/json'} });
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    }
+
+    // =============================
+    // ▶️ Flujo principal
+    // =============================
     async function run(){
       STOP=false;
       $tbl.innerHTML='';
+
       const list=sanitize(el('admisiones').value);
       const institucionId=Number(el('institucionId').value);
+      const cambiarFecha=el('chkFecha').checked;
+      const generarFactura=el('chkFactura').checked;
       const fechaEmision=mmddyyyy(el('fechaEmision').value);
-      if(!list.length||!fechaEmision)return alert('Completa los datos.');
-      list.forEach(a=>$tbl.appendChild(row(a)));
-      let done=0;const total=list.length;
-      const next=()=>{
-        if(STOP)return;
-        const adm=list[done];
-        if(!adm)return;
-        setRow(adm,'run','Procesando...');
-        callBackend({institucionId,numeroAdmision:adm,fechaEmision})
-          .then(r=>{
-            setRow(adm,'ok',r.mensaje||'OK',r.idFacturas||[]);
-          })
-          .catch(e=>setRow(adm,'err',e.message))
-          .finally(()=>{
-            done++;
-            $bar.style.width=`${Math.round((done/total)*100)}%`;
-            if(done<total&&!STOP)next();
-          });
+
+      if(!list.length) return alert('Agrega al menos un número de admisión.');
+      if(!cambiarFecha && !generarFactura) return alert('Selecciona al menos una opción (generar factura y/o cambiar fecha).');
+      if(cambiarFecha && !fechaEmision) return alert('Selecciona la fecha de emisión.');
+
+      // Crear filas por cada acción seleccionada
+      const actions = [];
+      for(const adm of list){
+        if(generarFactura){ $tbl.appendChild(row(adm,'factura')); actions.push({adm, type:'factura'}); }
+        if(cambiarFecha){ $tbl.appendChild(row(adm,'fecha')); actions.push({adm, type:'fecha'}); }
+      }
+
+      let done=0;const total=actions.length;
+
+      const processOne = async (item)=>{
+        const {adm, type} = item;
+        try{
+          setRow(adm,type,'run','Procesando...');
+          if(type==='factura'){
+            const r = await callGenerarFactura({institucionId,numeroAdmision:adm});
+            // Formatear salida amigable con posibles campos del ejemplo
+            const msg = r?.resultado_remoto?.mensajeRetorno || r?.mensaje || 'OK';
+            const idTxt = r?.id_factura || r?.idFactura || r?.id || (r?.resultado_remoto?.numeroFactura ? `Factura: ${r.resultado_remoto.numeroFactura}` : '—');
+            setRow(adm,'factura','ok',msg,idTxt);
+          } else {
+            const r = await callCambiarFecha({institucionId,numeroAdmision:adm,fechaEmision});
+            const msg = r?.mensaje || 'Fecha actualizada';
+            const ids = r?.idFacturas || r?.ids || '—';
+            setRow(adm,'fecha','ok',msg,ids);
+          }
+        }catch(e){
+          setRow(item.adm,item.type,'err',e.message);
+        }
       };
+
+      const next = async ()=>{
+        if(STOP) return; 
+        const item = actions[done];
+        if(!item) return; 
+        await processOne(item);
+        done++; 
+        $bar.style.width=`${Math.round((done/total)*100)}%`;
+        if(done<total && !STOP) next();
+      };
+
       next();
     }
 
+    // =============================
+    // 🔘 Eventos de UI
+    // =============================
     el('btnStart').onclick=run;
     el('btnStop').onclick=()=>STOP=true;
     el('btnClear').onclick=()=>{$tbl.innerHTML='';$bar.style.width='0%';};
+
+    // Habilitar/deshabilitar fecha según el check
+    const $chkFecha = el('chkFecha');
+    const $fecha    = el('fechaEmision');
+    const toggleFechaInput = ()=>{ $fecha.disabled = !$chkFecha.checked; if(!$chkFecha.checked){ $fecha.value=''; } };
+    $chkFecha.addEventListener('change', toggleFechaInput);
+    toggleFechaInput();
   </script>
 </body>
 </html>
