@@ -8,6 +8,7 @@ const { obtenerDatosLogin } = require('./Controller/Base/toke');
 const { BatAuto } = require('./descargar/descargar');
 
 const { cambiarFechaEmision  } = require('./Controller/otro/cambiarF');
+const { getIdFacturaPorAdmision  } = require('./Controller/otro/generarNumeroFactura');
 const { DescargarLaboratorio  } = require('./Controller/otro/laboratorio');
 
 // area de gereadorde url pdf
@@ -23,7 +24,7 @@ router.post('/api/istitucion', obtenerDatosLogin);
 
 
 router.post('/cambiar-fecha', cambiarFechaEmision);
-
+router.get('/por-admision', getIdFacturaPorAdmision);
 // Route to test server
 router.get('/router', (req, res) => {
   res.send('Hola Mundo'); // Send a response to the client

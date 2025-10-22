@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Numerar Facturas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+      padding: 40px;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #2b2b2b;
+      margin-bottom: 20px;
+      text-align: center;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      padding: 30px 40px;
+      width: 100%;
+      max-width: 600px;
+      transition: all 0.3s ease;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-top: 15px;
+      color: #555;
+    }
+    input, textarea {
+      width: 100%;
+      margin-top: 8px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #0078d7;
+      box-shadow: 0 0 4px #90caf9;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px 20px;
+      font-size: 1rem;
+      background: linear-gradient(90deg, #0078d7, #5b9df2);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    ul {
+      margin-top: 30px;
+      padding-left: 0;
+      list-style-type: none;
+      width: 100%;
+    }
+    li {
+      background: #fafafa;
+      border-left: 6px solid #ccc;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+    li:hover {
+      background: #fff;
+      transform: translateX(4px);
+    }
+    .ok {
+      border-left-color: #43a047;
+      color: #2e7d32;
+    }
+    .error {
+      border-left-color: #e53935;
+      color: #b71c1c;
+    }
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.6);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-left: 10px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .progress-bar {
+      margin-top: 20px;
+      height: 10px;
+      width: 100%;
+      background: #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .progress {
+      height: 100%;
+      background: linear-gradient(90deg, #0078d7, #5b9df2);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <h1>Numerar Facturas (Múltiples Admisiones)</h1>
+
+  <div class="card">
+    <label for="institucion">ID de Institución:</label>
+    <input type="number" value="20" id="institucion" placeholder="Ej: 20" />
+
+    <label for="admisiones">Lista de Números de Admisión (uno por línea o separados por comas):</label>
+    <textarea id="admisiones" placeholder="Ejemplo: 51629, 51630, 51631"></textarea>
+
+    <button id="btn">Procesar lista</button>
+    <div class="progress-bar">
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <ul id="listaResultados"></ul>
+  </div>
+
+  <script>
+    const btn = document.getElementById("btn");
+    const lista = document.getElementById("listaResultados");
+    const progress = document.getElementById("progress");
+
+    btn.addEventListener("click", async () => {
+      const institucionId = document.getElementById("institucion").value.trim();
+      const admisionesInput = document.getElementById("admisiones").value.trim();
+
+      if (!institucionId || !admisionesInput) {
+        alert("Debes ingresar el ID de institución y al menos un número de admisión.");
+        return;
+      }
+
+      const admisiones = admisionesInput
+        .split(/[\s,]+/)
+        .map(a => a.trim())
+        .filter(a => a !== '');
+
+      if (admisiones.length === 0) {
+        alert("La lista de admisiones está vacía.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Procesando...";
+      const spinner = document.createElement("span");
+      spinner.className = "spinner";
+      btn.appendChild(spinner);
+
+      for (let i = 0; i < admisiones.length; i++) {
+        const numeroAdmision = admisiones[i];
+        try {
+          const url = `http://localhost:3000/por-admision?institucionId=${institucionId}&numeroAdmision=${numeroAdmision}`;
+          const res = await fetch(url);
+          const data = await res.json();
+
+          console.log(`Respuesta (${numeroAdmision}):`, data);
+
+          const item = document.createElement("li");
+          if (data.ok) {
+            item.classList.add("ok");
+            item.innerHTML = `
+              ✅ <strong>Factura numerada</strong><br>
+              Admisión: ${numeroAdmision}<br>
+              ID Factura: ${data.id_factura}<br>
+              Número generado: <strong>${data.resultado_remoto?.numeroFactura ?? 'N/A'}</strong>
+            `;
+          } else {
+            item.classList.add("error");
+            item.innerHTML = `
+              ❌ <strong>Error:</strong> Admisión ${numeroAdmision} → ${data.error || 'No se pudo procesar'}
+            `;
+          }
+          lista.prepend(item);
+        } catch (err) {
+          console.error(err);
+          const item = document.createElement("li");
+          item.classList.add("error");
+          item.innerHTML = `
+            ❌ <strong>Error de conexión:</strong> Admisión ${numeroAdmision} → ${err.message}
+          `;
+          lista.prepend(item);
+        }
+
+        // Actualizar barra de progreso
+        const percent = ((i + 1) / admisiones.length) * 100;
+        progress.style.width = percent + "%";
+        await new Promise(r => setTimeout(r, 300)); // pausa ligera visual
+      }
+
+      btn.disabled = false;
+      btn.textContent = "Procesar lista";
+      spinner.remove();
+    });
+  </script>
+</body>
+</html>

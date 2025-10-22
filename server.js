@@ -30,7 +30,11 @@ app.get('/laboratorio', (req, res) => {
 
 
 app.get('/cambiarFecha', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'cambiar.html'));
+  res.sendFile(path.join(__dirname, 'public/otros', 'cambiar.html'));
+});
+
+app.get('/AgregaNNumero', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/otros', 'NUmeroadmicion.html'));
 });
 
 // (Opcional) Respuesta simple en la raíz para health checks
@@ -43,4 +47,5 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
   console.log(`Página de laboratorio: http://localhost:${PORT}/laboratorio`);
   console.log(`Página de cambiar fecha: http://localhost:${PORT}/cambiarFecha`);
+  console.log(`Página de agregar número: http://localhost:${PORT}/AgregaNNumero`);
 });
