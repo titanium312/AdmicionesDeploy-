@@ -3,138 +3,178 @@
 <head>
   <meta charset="UTF-8" />
   <title>Numerar Facturas</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     * {
       box-sizing: border-box;
     }
+
     body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
-      padding: 40px;
-      color: #333;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at top left, #111, #000);
+      color: #f5f5f5;
       min-height: 100vh;
+      margin: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
+      padding: 40px;
     }
+
     h1 {
-      font-size: 2rem;
+      font-size: 2.2rem;
       font-weight: 700;
-      color: #2b2b2b;
-      margin-bottom: 20px;
-      text-align: center;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      color: #00aaff;
+      text-shadow: 0 0 10px rgba(0, 170, 255, 0.7);
+      margin-bottom: 30px;
+      letter-spacing: 1px;
     }
+
     .card {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      background: rgba(20, 20, 20, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      border-radius: 18px;
+      box-shadow: 0 0 25px rgba(0, 170, 255, 0.1);
       padding: 30px 40px;
       width: 100%;
-      max-width: 600px;
+      max-width: 650px;
       transition: all 0.3s ease;
     }
+
     label {
       display: block;
       font-weight: 600;
       margin-top: 15px;
-      color: #555;
+      color: #bbb;
     }
+
     input, textarea {
       width: 100%;
       margin-top: 8px;
-      padding: 10px 12px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: #1a1a1a;
+      color: #fff;
       font-size: 1rem;
-      transition: all 0.2s ease;
-    }
-    input:focus, textarea:focus {
       outline: none;
-      border-color: #0078d7;
-      box-shadow: 0 0 4px #90caf9;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
+
+    input:focus, textarea:focus {
+      border-color: #00aaff;
+      box-shadow: 0 0 8px rgba(0, 170, 255, 0.5);
+    }
+
     textarea {
       resize: vertical;
-      min-height: 90px;
+      min-height: 100px;
     }
+
     button {
-      margin-top: 20px;
+      margin-top: 25px;
       width: 100%;
-      padding: 12px 20px;
+      padding: 14px 20px;
       font-size: 1rem;
-      background: linear-gradient(90deg, #0078d7, #5b9df2);
+      background: linear-gradient(90deg, #00aaff, #0078ff);
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
       color: white;
       font-weight: 600;
       cursor: pointer;
+      letter-spacing: 0.5px;
       transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
+
     button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 18px rgba(0,170,255,0.4);
     }
+
     ul {
       margin-top: 30px;
       padding-left: 0;
       list-style-type: none;
       width: 100%;
     }
+
     li {
-      background: #fafafa;
-      border-left: 6px solid #ccc;
-      border-radius: 10px;
-      padding: 12px 16px;
-      margin-bottom: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-      transition: background 0.3s ease, transform 0.2s ease;
+      background: #161616;
+      border-left: 5px solid #333;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      transition: transform 0.2s ease, background 0.3s ease;
     }
+
     li:hover {
-      background: #fff;
-      transform: translateX(4px);
+      transform: translateX(5px);
+      background: #1e1e1e;
     }
+
     .ok {
-      border-left-color: #43a047;
-      color: #2e7d32;
+      border-left-color: #00e676;
+      color: #8cffc1;
+      text-shadow: 0 0 6px rgba(0,255,128,0.4);
     }
+
     .error {
-      border-left-color: #e53935;
-      color: #b71c1c;
+      border-left-color: #ff5252;
+      color: #ff7a7a;
+      text-shadow: 0 0 6px rgba(255,80,80,0.3);
     }
+
     .spinner {
       display: inline-block;
       width: 16px;
       height: 16px;
-      border: 2px solid rgba(255,255,255,0.6);
-      border-top-color: #fff;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #00aaff;
       border-radius: 50%;
       animation: spin 0.6s linear infinite;
       vertical-align: middle;
       margin-left: 10px;
     }
+
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+
     .progress-bar {
       margin-top: 20px;
       height: 10px;
       width: 100%;
-      background: #e0e0e0;
+      background: rgba(255,255,255,0.05);
       border-radius: 8px;
       overflow: hidden;
+      box-shadow: inset 0 0 8px rgba(0,170,255,0.2);
     }
+
     .progress {
       height: 100%;
-      background: linear-gradient(90deg, #0078d7, #5b9df2);
+      background: linear-gradient(90deg, #00aaff, #0078ff, #00aaff);
       width: 0%;
-      transition: width 0.3s ease;
+      animation: glow 2s linear infinite;
+      background-size: 200% auto;
+      transition: width 0.4s ease;
+    }
+
+    @keyframes glow {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+
+    footer {
+      margin-top: 40px;
+      font-size: 0.9rem;
+      color: #777;
     }
   </style>
 </head>
 <body>
-  <h1>Numerar Facturas (Múltiples Admisiones)</h1>
+  <h1>Numerar Facturas (Modo Oscuro)</h1>
 
   <div class="card">
     <label for="institucion">ID de Institución:</label>
@@ -150,6 +190,8 @@
 
     <ul id="listaResultados"></ul>
   </div>
+
+  <footer>💡 Desarrollado con estilo — Modo Oscuro Elegante ⚡</footer>
 
   <script>
     const btn = document.getElementById("btn");
@@ -188,8 +230,6 @@
           const res = await fetch(url);
           const data = await res.json();
 
-          console.log(`Respuesta (${numeroAdmision}):`, data);
-
           const item = document.createElement("li");
           if (data.ok) {
             item.classList.add("ok");
@@ -207,7 +247,6 @@
           }
           lista.prepend(item);
         } catch (err) {
-          console.error(err);
           const item = document.createElement("li");
           item.classList.add("error");
           item.innerHTML = `
@@ -216,10 +255,9 @@
           lista.prepend(item);
         }
 
-        // Actualizar barra de progreso
         const percent = ((i + 1) / admisiones.length) * 100;
         progress.style.width = percent + "%";
-        await new Promise(r => setTimeout(r, 300)); // pausa ligera visual
+        await new Promise(r => setTimeout(r, 300)); // pausa visual
       }
 
       btn.disabled = false;
