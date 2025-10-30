@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LitElement Ejemplo</title>
+
+  <!-- Import Map -->
+  <script type="importmap">
+    {
+      "imports": {
+        "lit": "/node_modules/lit/index.js",
+        "lit/": "/node_modules/lit/",
+        "lit-html": "/node_modules/lit-html/lit-html.js",
+        "lit-html/": "/node_modules/lit-html/",
+        "@lit/reactive-element": "/node_modules/@lit/reactive-element/reactive-element.js",
+        "@lit/reactive-element/": "/node_modules/@lit/reactive-element/",
+        "lit-element": "/node_modules/lit-element/lit-element.js",
+        "lit-element/": "/node_modules/lit-element/"
+      }
+    }
+  </script>
+
+  <!-- Tu script principal -->
+  <script type="module" src="./main.js"></script>
+</head>
+<body>
+  <main-page></main-page>
+</body>
+</html>
