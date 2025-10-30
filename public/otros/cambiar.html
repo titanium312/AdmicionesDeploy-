@@ -79,9 +79,10 @@
             <label>Qué deseas hacer</label>
             <div class="chips" role="group" aria-label="Opciones de proceso">
               <label class="chip"><input id="chkFactura" type="checkbox" checked> Generar número de factura</label>
+              <label class="chip"><input id="chkEnviar" type="checkbox"> Enviar a la DIAN</label>
               <label class="chip"><input id="chkFecha" type="checkbox"> Cambiar fecha de emisión</label>
             </div>
-            <div class="hint">Puedes marcar una o ambas opciones. Si marcas ambas, primero se genera la factura y luego se cambia la fecha.</div>
+            <div class="hint">Puedes marcar una o varias opciones. El orden de ejecución será: generar factura → enviar a DIAN → cambiar fecha.</div>
           </div>
           <div class="col-3">
             <label>Fecha de emisión</label>
@@ -128,6 +129,7 @@
     const urlBase = 'https://total-oeyx.onrender.com';  // ← cámbiala si lo subes a hosting
     const PATH_CAMBIAR_FECHA = '/cambiar-fecha';
     const PATH_POR_ADMISION  = '/por-admision';
+    const PATH_ENVIAR_DIAN   = '/EnviarFacturaElectronica';
     const CONCURRENCY = 1;
 
     const el = (id)=>document.getElementById(id);
@@ -139,7 +141,14 @@
     const now = ()=> new Date().toLocaleTimeString();
     const sanitize = t=>t.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
 
-    const actionLabel = (key)=> key==='factura' ? 'Generar factura' : 'Cambiar fecha';
+    const actionLabel = (key)=> {
+      switch(key){
+        case 'factura': return 'Generar factura';
+        case 'enviar': return 'Enviar a la DIAN';
+        case 'fecha': return 'Cambiar fecha';
+        default: return key;
+      }
+    };
 
     const row = (adm, action)=>{
       const tr=document.createElement('tr');
@@ -186,6 +195,17 @@
       return res.json();
     }
 
+    async function callEnviarDian({institucionId,numeroAdmision}){
+      const qs = new URLSearchParams({institucionId:String(institucionId),numeroAdmision:String(numeroAdmision)});
+      const url = `${urlBase+PATH_ENVIAR_DIAN}?${qs.toString()}`;
+      const res = await fetch(url, { 
+        method:'POST', 
+        headers:{'Content-Type':'application/json'} 
+      });
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    }
+
     // =============================
     // ▶️ Flujo principal
     // =============================
@@ -197,16 +217,19 @@
       const institucionId=Number(el('institucionId').value);
       const cambiarFecha=el('chkFecha').checked;
       const generarFactura=el('chkFactura').checked;
+      const enviarDian=el('chkEnviar').checked;
       const fechaEmision=mmddyyyy(el('fechaEmision').value);
 
       if(!list.length) return alert('Agrega al menos un número de admisión.');
-      if(!cambiarFecha && !generarFactura) return alert('Selecciona al menos una opción (generar factura y/o cambiar fecha).');
+      if(!cambiarFecha && !generarFactura && !enviarDian) return alert('Selecciona al menos una opción.');
       if(cambiarFecha && !fechaEmision) return alert('Selecciona la fecha de emisión.');
+      if(enviarDian && !generarFactura) return alert('Para enviar a la DIAN, primero genera la factura.');
 
-      // Crear filas por cada acción seleccionada
+      // Crear filas por cada acción seleccionada (orden: factura → enviar → fecha)
       const actions = [];
       for(const adm of list){
         if(generarFactura){ $tbl.appendChild(row(adm,'factura')); actions.push({adm, type:'factura'}); }
+        if(enviarDian){ $tbl.appendChild(row(adm,'enviar')); actions.push({adm, type:'enviar'}); }
         if(cambiarFecha){ $tbl.appendChild(row(adm,'fecha')); actions.push({adm, type:'fecha'}); }
       }
 
@@ -222,6 +245,11 @@
             const msg = r?.resultado_remoto?.mensajeRetorno || r?.mensaje || 'OK';
             const idTxt = r?.id_factura || r?.idFactura || r?.id || (r?.resultado_remoto?.numeroFactura ? `Factura: ${r.resultado_remoto.numeroFactura}` : '—');
             setRow(adm,'factura','ok',msg,idTxt);
+          } else if(type==='enviar'){
+            const r = await callEnviarDian({institucionId,numeroAdmision:adm});
+            const msg = r?.data?.mensajeRetorno || r?.mensaje || 'Enviado a la DIAN';
+            const idTxt = r?.data?.numeroFactura || r?.idFactura || '—';
+            setRow(adm,'enviar','ok',msg,idTxt);
           } else {
             const r = await callCambiarFecha({institucionId,numeroAdmision:adm,fechaEmision});
             const msg = r?.mensaje || 'Fecha actualizada';
