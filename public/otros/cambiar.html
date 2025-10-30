@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>Cambiar fecha de emisión / Generar factura por Admisión</title>
+  <title>Generar factura / Cambiar fecha / Enviar a la DIAN</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root{
@@ -62,7 +62,7 @@
 <body>
   <div class="shell">
     <div class="title">
-      <h1>🧾 Cambiar fecha de emisión / Generar factura por Admisión</h1>
+      <h1>🧾 Generar número / Cambiar fecha / Enviar a DIAN</h1>
     </div>
     <div class="card">
       <div class="hd">
@@ -79,10 +79,10 @@
             <label>Qué deseas hacer</label>
             <div class="chips" role="group" aria-label="Opciones de proceso">
               <label class="chip"><input id="chkFactura" type="checkbox" checked> Generar número de factura</label>
-              <label class="chip"><input id="chkEnviar" type="checkbox"> Enviar a la DIAN</label>
               <label class="chip"><input id="chkFecha" type="checkbox"> Cambiar fecha de emisión</label>
+              <label class="chip"><input id="chkEnviar" type="checkbox"> Enviar a la DIAN</label>
             </div>
-            <div class="hint">Puedes marcar una o varias opciones. El orden de ejecución será: generar factura → enviar a DIAN → cambiar fecha.</div>
+            <div class="hint">Si marcas todo, el orden será: <b>Generar número → Cambiar fecha → Enviar a DIAN</b>. Cada acción es independiente.</div>
           </div>
           <div class="col-3">
             <label>Fecha de emisión</label>
@@ -124,9 +124,9 @@
 
   <script>
     // ==============================================
-    // ⚙️ CONFIGURACIÓN
+    // ⚙️ CONFIGURACIÓN (independiente, sin librerías externas)
     // ==============================================
-    const urlBase = 'https://total-oeyx.onrender.com';  // ← cámbiala si lo subes a hosting
+    const urlBase = 'https://total-oeyx.onrender.com';  // puedes cambiarlo por tu host
     const PATH_CAMBIAR_FECHA = '/cambiar-fecha';
     const PATH_POR_ADMISION  = '/por-admision';
     const PATH_ENVIAR_DIAN   = '/EnviarFacturaElectronica';
@@ -144,8 +144,8 @@
     const actionLabel = (key)=> {
       switch(key){
         case 'factura': return 'Generar factura';
-        case 'enviar': return 'Enviar a la DIAN';
         case 'fecha': return 'Cambiar fecha';
+        case 'enviar': return 'Enviar a la DIAN';
         default: return key;
       }
     };
@@ -198,10 +198,7 @@
     async function callEnviarDian({institucionId,numeroAdmision}){
       const qs = new URLSearchParams({institucionId:String(institucionId),numeroAdmision:String(numeroAdmision)});
       const url = `${urlBase+PATH_ENVIAR_DIAN}?${qs.toString()}`;
-      const res = await fetch(url, { 
-        method:'POST', 
-        headers:{'Content-Type':'application/json'} 
-      });
+      const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'} });
       if(!res.ok) throw new Error(`HTTP ${res.status}`);
       return res.json();
     }
@@ -223,14 +220,14 @@
       if(!list.length) return alert('Agrega al menos un número de admisión.');
       if(!cambiarFecha && !generarFactura && !enviarDian) return alert('Selecciona al menos una opción.');
       if(cambiarFecha && !fechaEmision) return alert('Selecciona la fecha de emisión.');
-      if(enviarDian && !generarFactura) return alert('Para enviar a la DIAN, primero genera la factura.');
+      // Nota: enviar a DIAN ya no depende del check de generar factura (puede existir ya creada)
 
-      // Crear filas por cada acción seleccionada (orden: factura → enviar → fecha)
+      // Crear filas por cada acción seleccionada (orden: factura → fecha → enviar)
       const actions = [];
       for(const adm of list){
         if(generarFactura){ $tbl.appendChild(row(adm,'factura')); actions.push({adm, type:'factura'}); }
-        if(enviarDian){ $tbl.appendChild(row(adm,'enviar')); actions.push({adm, type:'enviar'}); }
         if(cambiarFecha){ $tbl.appendChild(row(adm,'fecha')); actions.push({adm, type:'fecha'}); }
+        if(enviarDian){ $tbl.appendChild(row(adm,'enviar')); actions.push({adm, type:'enviar'}); }
       }
 
       let done=0;const total=actions.length;
@@ -241,20 +238,21 @@
           setRow(adm,type,'run','Procesando...');
           if(type==='factura'){
             const r = await callGenerarFactura({institucionId,numeroAdmision:adm});
-            // Formatear salida amigable con posibles campos del ejemplo
             const msg = r?.resultado_remoto?.mensajeRetorno || r?.mensaje || 'OK';
             const idTxt = r?.id_factura || r?.idFactura || r?.id || (r?.resultado_remoto?.numeroFactura ? `Factura: ${r.resultado_remoto.numeroFactura}` : '—');
             setRow(adm,'factura','ok',msg,idTxt);
-          } else if(type==='enviar'){
-            const r = await callEnviarDian({institucionId,numeroAdmision:adm});
-            const msg = r?.data?.mensajeRetorno || r?.mensaje || 'Enviado a la DIAN';
-            const idTxt = r?.data?.numeroFactura || r?.idFactura || '—';
-            setRow(adm,'enviar','ok',msg,idTxt);
-          } else {
+          } else if(type==='fecha'){
             const r = await callCambiarFecha({institucionId,numeroAdmision:adm,fechaEmision});
             const msg = r?.mensaje || 'Fecha actualizada';
             const ids = r?.idFacturas || r?.ids || '—';
             setRow(adm,'fecha','ok',msg,ids);
+          } else if(type==='enviar'){
+            const r = await callEnviarDian({institucionId,numeroAdmision:adm});
+            const data = r?.data || r;
+            const isOk = Number(data?.valorRetorno) === 1 || r?.ok === true;
+            const msg = (data?.mensajeRetorno && String(data.mensajeRetorno).trim()) || (isOk ? 'Enviada a DIAN' : 'Sin mensaje');
+            const idTxt = data?.numeroFactura || data?.idFactura || '—';
+            setRow(adm,'enviar', isOk ? 'ok' : 'err', msg, idTxt);
           }
         }catch(e){
           setRow(item.adm,item.type,'err',e.message);
