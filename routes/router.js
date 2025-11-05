@@ -7,14 +7,15 @@ const { FacturaElectronica } = require('./Controller/facuraelectronica');
 const { obtenerDatosLogin } = require('./Controller/Base/toke');
 const { BatAuto } = require('./descargar/descargar');
 
+
+
 const { cambiarFechaEmision  } = require('./Controller/otro/cambiarF');
 const { getIdFacturaPorAdmision  } = require('./Controller/otro/generarNumeroFactura');
 const { DescargarLaboratorio  } = require('./Controller/otro/laboratorio');
 const { EnviarADian } = require('./Controller/otro/EnviarAdian');
-const cmd = require('./Controller/otro/imprimir/ruta');
 // area de gereadorde url pdf
 
-router.use('/cmd', cmd);
+
 
 
 router.get('/Hs_Anx', Hs_Anx);
