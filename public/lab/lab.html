@@ -227,218 +227,191 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-  <script>
-    // ===== CONFIG =====
-    const BASE_URL = "https://total-oeyx.onrender.com";
-    const ROUTE_PATH = "/DescargarLaboratorio";
-    const INSTITUCION_ID = 20;
-    const USER_ID = 6874;
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('formLab');
+    const btnSubmit = document.getElementById('btnSubmit');
+    const btnLabel = btnSubmit.querySelector('.btn-label');
+    const btnWorking = btnSubmit.querySelector('.btn-working');
+    const out = document.getElementById('out');
+    const card = document.getElementById('card');
 
-    // ===== HELPERS =====
-    const $ = (s,r=document)=>r.querySelector(s);
-    const form = $('#formLab');
+    const numeroAdmision = document.getElementById('numeroAdmision');
+    const tipoDocumento = document.getElementById('tipoDocumento');
+    const numeroDocumento = document.getElementById('numeroDocumento');
+    const fechaNacimiento = document.getElementById('fechaNacimiento');
 
-    function setWorking(on){
-      const b = $('#btnSubmit');
-      b.disabled = on;
-      $('.btn-label', b).classList.toggle('d-none', on);
-      $('.btn-working', b).classList.toggle('d-none', !on);
-    }
-    function successMsg(text){
-      $('#out').innerHTML = `<span class="text-success-soft"><svg class="check" viewBox="0 0 24 24"><path d="M4 12l5 5 11-11"></path></svg> ${text}</span>`;
-    }
-    function errorMsg(text){
-      $('#out').innerHTML = `<span class="text-danger-soft"><i class="bi bi-x-circle me-1"></i>${text}</span>`;
-    }
-    const onlyDigits = v => (v||"").replace(/\D+/g,"");
-    const camposCompletos = () =>
-      $('#numeroAdmision').value.trim() &&
-      $('#tipoDocumento').value.trim() &&
-      $('#numeroDocumento').value.trim() &&
-      $('#fechaNacimiento').value;
+    const toggleTiposBtn = document.getElementById('toggleTipos');
 
-    function buildParams({numeroAdmision,tipoDocumento,numeroDocumento,fechaNacimiento,mode='json'}){
-      return new URLSearchParams({
-        institucionId:String(INSTITUCION_ID),
-        idUser:String(USER_ID),
-        numeroAdmision:String(numeroAdmision),
-        tipoDocumento:String(tipoDocumento).toUpperCase(),
-        numeroDocumento:String(numeroDocumento),
-        fechaNacimiento,
-        mode
-      }).toString();
-    }
-
-    async function validarDatos(payload){
-      const url = `${BASE_URL}${ROUTE_PATH}?${buildParams({...payload,mode:'json'})}`;
-      const res = await fetch(url,{method:'POST'});
-      if(!res.ok) throw new Error('Error validando datos');
-      const data = await res.json();
-      if(!data?.success || !data?.url) throw new Error('Datos no válidos');
-      return data;
-    }
-
-    async function descargarPDF(payload, filename='Resultado_Laboratorio.pdf'){
-      const url = `${BASE_URL}${ROUTE_PATH}?${buildParams({...payload,mode:'stream'})}`;
-      const res = await fetch(url,{method:'POST',headers:{Accept:'application/pdf'}});
-      const ct = res.headers.get('Content-Type') || '';
-      const blob = await res.blob();
-      if(!res.ok || !ct.includes('application/pdf') || blob.size < 5*1024){
-        throw new Error('No se pudo descargar el PDF');
-      }
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
-    }
-
-    // ===== Tipos de documento =====
-    const TIPOS_ALL = [
-      {code:'AS',label:'Adulto sin identificación'},
-      {code:'CC',label:'Cédula de Ciudadanía'},
-      {code:'CE',label:'Cédula de Extranjería'},
-      {code:'TI',label:'Tarjeta de Identidad'},
-      {code:'RC',label:'Registro Civil'},
-      {code:'PA',label:'Pasaporte'},
-      {code:'PE',label:'Permiso Especial'},
-      {code:'PEP',label:'Permiso Especial de Permanencia'}
+    // ====== 1. Poblar tipos de documento ======
+    const tiposBasicos = [
+      { value: 'CC', label: 'Cédula de ciudadanía (CC)' },
+      { value: 'TI', label: 'Tarjeta de identidad (TI)' },
+      { value: 'CE', label: 'Cédula de extranjería (CE)' }
     ];
-    const TIPOS_COMUNES = ['CC','TI','RC','PE'];
-    const selTipo = $('#tipoDocumento');
-    const toggleBtn = $('#toggleTipos');
-    let mostrandoTodos = false;
 
-    function renderTipos(all=false){
-      const lista = all ? TIPOS_ALL : TIPOS_ALL.filter(t => TIPOS_COMUNES.includes(t.code));
-      selTipo.innerHTML = '';
-      for(const t of lista){
+    const tiposExtras = [
+      { value: 'PA', label: 'Pasaporte (PA)' },
+      { value: 'RC', label: 'Registro civil (RC)' },
+      { value: 'NIT', label: 'NIT' },
+      { value: 'OTRO', label: 'Otro documento' }
+    ];
+
+    function poblarTiposDocumento() {
+      tiposBasicos.forEach(t => {
         const opt = document.createElement('option');
-        opt.value = t.code;
-        opt.textContent = `${t.code} — ${t.label}`;
-        selTipo.appendChild(opt);
-      }
-      selTipo.value = 'CC';
+        opt.value = t.value;
+        opt.textContent = t.label;
+        tipoDocumento.appendChild(opt);
+      });
     }
 
-    toggleBtn.addEventListener('click', ()=>{
-      mostrandoTodos = !mostrandoTodos;
-      renderTipos(mostrandoTodos);
-      toggleBtn.setAttribute('aria-expanded', String(mostrandoTodos));
-      toggleBtn.innerHTML = `${mostrandoTodos ? '<i class="bi bi-chevron-up"></i> mostrar opciones comunes' : '<i class=\"bi bi-chevron-down\"></i> mostrar más opciones'}`;
+    let extrasAgregados = false;
+    function agregarTiposExtras() {
+      if (extrasAgregados) return;
+      const optgroup = document.createElement('optgroup');
+      optgroup.label = 'Otros tipos de documento';
+      tiposExtras.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.value;
+        opt.textContent = t.label;
+        optgroup.appendChild(opt);
+      });
+      tipoDocumento.appendChild(optgroup);
+      extrasAgregados = true;
+    }
+
+    poblarTiposDocumento();
+
+    // Mostrar/ocultar más tipos (realmente solo añadimos una vez)
+    toggleTiposBtn.addEventListener('click', () => {
+      const expanded = toggleTiposBtn.getAttribute('aria-expanded') === 'true';
+      if (!expanded) {
+        agregarTiposExtras();
+      }
+      toggleTiposBtn.setAttribute('aria-expanded', String(!expanded));
     });
 
-    renderTipos(false);
+    // ====== 2. Animación simple para la tarjeta ======
+    if (card) {
+      card.addEventListener('mouseenter', () => card.classList.add('hovered'));
+      card.addEventListener('mouseleave', () => card.classList.remove('hovered'));
+    }
 
-    // ===== Envío del formulario =====
-    form.addEventListener('submit', async (e)=>{
-      e.preventDefault();
+    // ====== 3. Helpers de UI ======
+    function setLoading(isLoading) {
+      btnSubmit.disabled = isLoading;
+      btnLabel.classList.toggle('d-none', isLoading);
+      btnWorking.classList.toggle('d-none', !isLoading);
+    }
 
-      if(!form.checkValidity() || !camposCompletos()){
+    function mostrarMensaje(tipo, texto) {
+      // tipo: "ok" | "error"
+      if (!out) return;
+      if (tipo === 'ok') {
+        out.classList.remove('text-danger-soft');
+        out.classList.add('text-success-soft');
+
+        out.innerHTML = `
+          <svg class="check me-1" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 13l5 5 11-13"></path>
+          </svg>
+          Resultado generado correctamente. La descarga del PDF debería iniciarse en unos segundos.
+        `;
+      } else {
+        out.classList.remove('text-success-soft');
+        out.classList.add('text-danger-soft');
+        out.textContent = texto;
+      }
+    }
+
+    function limpiarMensaje() {
+      if (out) {
+        out.textContent = '';
+        out.classList.remove('text-success-soft', 'text-danger-soft');
+      }
+    }
+
+    // Convierte fecha de YYYY-MM-DD a DD/MM/YYYY
+    function formatearFechaDDMMYYYY(valorDate) {
+      if (!valorDate) return '';
+      const [yyyy, mm, dd] = valorDate.split('-');
+      if (!yyyy || !mm || !dd) return '';
+      return `${dd}/${mm}/${yyyy}`;
+    }
+
+    // ====== 4. Manejo del envío del formulario ======
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      limpiarMensaje();
+
+      if (!form.checkValidity()) {
         form.classList.add('was-validated');
-        errorMsg('Debe completar los campos obligatorios.');
         return;
       }
 
+      form.classList.add('was-validated');
+      setLoading(true);
+
       const payload = {
-        numeroAdmision: onlyDigits($('#numeroAdmision').value.trim()),
-        tipoDocumento: selTipo.value.trim().toUpperCase(),
-        numeroDocumento: onlyDigits($('#numeroDocumento').value.trim()),
-        fechaNacimiento: $('#fechaNacimiento').value
+        institucionId: 20,
+        idUser: 6874,
+        // OJO: el backend espera "numeroAdmicion" (tal cual el ejemplo de curl)
+        numeroAdmicion: numeroAdmision.value.trim(),
+        tipoDocumento: tipoDocumento.value,
+        numeroDocumento: numeroDocumento.value.trim(),
+        // El backend espera dd/MM/yyyy
+        fechaNacimiento: formatearFechaDDMMYYYY(fechaNacimiento.value)
       };
 
-      setWorking(true);
-      successMsg('Verificando datos…');
-      try{
-        await validarDatos(payload);
-        successMsg('Descargando reporte…');
-        await descargarPDF(payload, `Resultado_Laboratorio_${payload.numeroAdmision}.pdf`);
-        successMsg('¡Descarga completada!');
-        celebrate('#card');
-      }catch(err){
-        errorMsg(err?.message || 'Error en la descarga');
-        shake('#card');
-      }finally{
-        setWorking(false);
+      try {
+        const response = await fetch('https://total-oeyx.onrender.com/DescargarLaboratorio', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error('No se pudo obtener el resultado. Verifica los datos e inténtalo nuevamente.');
+        }
+
+        // Convertimos la respuesta en un blob (PDF)
+        const blob = await response.blob();
+
+        // Intentamos leer el nombre del archivo desde el header, si existe
+        const disposition = response.headers.get('Content-Disposition');
+        let filename = 'resultado-laboratorio.pdf';
+        if (disposition && disposition.includes('filename=')) {
+          const match = disposition.match(/filename="?([^"]+)"?/i);
+          if (match && match[1]) {
+            filename = match[1];
+          }
+        }
+
+        // Creamos un enlace temporal de descarga
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+
+        mostrarMensaje('ok');
+      } catch (error) {
+        console.error(error);
+        mostrarMensaje('error', 'Ocurrió un error al descargar el resultado. Si el problema persiste, comunícate con soporte.');
+      } finally {
+        setLoading(false);
       }
     });
+  });
+</script>
 
-    // Reset de validación al escribir
-    ['numeroAdmision','numeroDocumento','fechaNacimiento','tipoDocumento'].forEach(id=>{
-      $(`#${id}`).addEventListener('input', ()=>{ if(form.classList.contains('was-validated')) form.classList.remove('was-validated'); });
-    });
-
-    // ===== Microinteracciones =====
-    // Ripple en el botón principal
-    const btn = document.getElementById('btnSubmit');
-    btn.addEventListener('click', (e)=>{
-      const rect = btn.getBoundingClientRect();
-      const span = document.createElement('span');
-      const size = Math.max(rect.width, rect.height);
-      span.className = 'ripple';
-      span.style.width = span.style.height = size + 'px';
-      span.style.left = (e.clientX - rect.left - size/2) + 'px';
-      span.style.top = (e.clientY - rect.top - size/2) + 'px';
-      btn.appendChild(span);
-      setTimeout(()=> span.remove(), 650);
-    });
-
-    // Tilt sutil del card con el mouse
-    const card = document.getElementById('card');
-    const maxTilt = 6; // grados
-    function handleTilt(e){
-      const b = card.getBoundingClientRect();
-      const cx = b.left + b.width/2, cy = b.top + b.height/2;
-      const dx = (e.clientX - cx) / (b.width/2);
-      const dy = (e.clientY - cy) / (b.height/2);
-      card.style.transform = `rotateX(${(-dy*maxTilt).toFixed(2)}deg) rotateY(${(dx*maxTilt).toFixed(2)}deg)`;
-      card.classList.add('hovered');
-    }
-    function resetTilt(){ card.style.transform = 'rotateX(0deg) rotateY(0deg)'; card.classList.remove('hovered'); }
-    card.addEventListener('mousemove', handleTilt);
-    card.addEventListener('mouseleave', resetTilt);
-
-    // Shake en error
-    function shake(sel){
-      const el = document.querySelector(sel);
-      el.animate([
-        { transform:'translateX(0)' },
-        { transform:'translateX(-6px)' },
-        { transform:'translateX(6px)' },
-        { transform:'translateX(-4px)' },
-        { transform:'translateX(4px)' },
-        { transform:'translateX(0)' },
-      ], { duration: 420, easing:'ease-in-out' });
-    }
-
-    // Confetti simple con CSS/DOM (ligero)
-    function celebrate(sel){
-      const host = document.querySelector(sel);
-      const frag = document.createDocumentFragment();
-      const pieces = 24;
-      for(let i=0;i<pieces;i++){
-        const p = document.createElement('i');
-        const r = Math.random;
-        const size = 6 + r()*8; // 6-14px
-        p.style.position='absolute';
-        p.style.width = size+'px'; p.style.height = size+'px';
-        p.style.left = (host.clientWidth/2)+'px';
-        p.style.top = '10px';
-        p.style.background = `hsl(${~~(r()*360)} 90% 60%)`;
-        p.style.borderRadius = r()>.5 ? '50%' : '4px';
-        p.style.pointerEvents='none';
-        p.style.mixBlendMode='plus-lighter';
-        p.animate([
-          { transform:`translate(0,0) rotate(0deg)`, opacity:1 },
-          { transform:`translate(${(r()*2-1)*220}px, ${160 + r()*140}px) rotate(${~~(r()*360)}deg)`, opacity:0 }
-        ], { duration: 900 + r()*600, easing:'cubic-bezier(.2,.7,.1,1)' });
-        frag.appendChild(p);
-        setTimeout(()=> p.remove(), 1700);
-      }
-      host.appendChild(frag);
-    }
-  </script>
 </body>
 </html>

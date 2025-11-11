@@ -11,19 +11,18 @@ const { BatAuto } = require('./descargar/descargar');
 
 const { cambiarFechaEmision  } = require('./Controller/otro/cambiarF');
 const { getIdFacturaPorAdmision  } = require('./Controller/otro/generarNumeroFactura');
-const { DescargarLaboratorio  } = require('./Controller/otro/laboratorio');
+const { DescargarLaboratorio  } = require('./Controller/otro/LABORATORIO/laboratorio');
 const { EnviarADian } = require('./Controller/otro/EnviarAdian');
-// area de gereadorde url pdf
-
-
-
+const { buscarPaciente } = require('./Controller/otro/LABORATORIO/herramientas/buscarPaciente');
+// area de generador de url pdf
 
 router.get('/Hs_Anx', Hs_Anx);
 router.get('/facturaElectronica', FacturaElectronica);
 router.post('/DescargarLaboratorio', DescargarLaboratorio);
 router.post('/EnviarFacturaElectronica', EnviarADian);
 
-//area de cosultas
+router.post('/buscarPaciente', buscarPaciente);
+//area de consultas
 router.post('/descargar', BatAuto);
 router.post('/api/istitucion', obtenerDatosLogin);
 
