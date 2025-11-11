@@ -367,48 +367,48 @@
       };
 
       try {
-        const response = await fetch('https://total-oeyx.onrender.com/DescargarLaboratorio', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
+  const response = await fetch('https://total-oeyx.onrender.com/DescargarLaboratorio', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
 
-        if (!response.ok) {
-          throw new Error('No se pudo obtener el resultado. Verifica los datos e inténtalo nuevamente.');
-        }
+  if (!response.ok) {
+    throw new Error('No se pudo obtener el resultado. Verifica los datos e inténtalo nuevamente.');
+  }
 
-        // Convertimos la respuesta en un blob (PDF)
-        const blob = await response.blob();
+  // Convertimos la respuesta en un blob (PDF)
+  const blob = await response.blob();
 
-        // Intentamos leer el nombre del archivo desde el header, si existe
-        const disposition = response.headers.get('Content-Disposition');
-        let filename = 'resultado-laboratorio.pdf';
-        if (disposition && disposition.includes('filename=')) {
-          const match = disposition.match(/filename="?([^"]+)"?/i);
-          if (match && match[1]) {
-            filename = match[1];
-          }
-        }
+  // Nombre del archivo: Laboratorio_tipoDocumento+numeroDocumento.pdf
+  const filename = `Laboratorio_${tipoDocumento.value}${numeroDocumento.value.trim()}.pdf`;
 
-        // Creamos un enlace temporal de descarga
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
+  // Creamos un enlace temporal de descarga
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
 
-        mostrarMensaje('ok');
-      } catch (error) {
-        console.error(error);
-        mostrarMensaje('error', 'Ocurrió un error al descargar el resultado. Si el problema persiste, comunícate con soporte.');
-      } finally {
-        setLoading(false);
-      }
+  mostrarMensaje('ok');
+} catch (error) {
+  console.error(error);
+  mostrarMensaje('error', 'Verifica los datos e inténtalo nuevamente.Si el problema persiste, Asiste de forma presencial a la institución.');
+} finally {
+  setLoading(false);
+}
+
+
+
+
+
+
+ 
     });
   });
 </script>
