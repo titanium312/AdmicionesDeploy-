@@ -8,11 +8,10 @@ const axios = require('axios');
 async function buscarFactura(req, res) {
   const sSearch = req.body.sSearch?.trim() ?? '';
 
-  const fechaInicial = '07/01/2025';
-  const fechaFinal   = '11/12/2025';
+  const fechaInicial = '01/01/2024';
+  const fechaFinal   = '11/12/2026';
   const idEntidad    = 0;
   const idContrato   = 0;
-  const SinNumero    = false;
   const duplicadas   = false;
   const idCuentaCobro = 0;
   const estadoFacturacionElectronica = 0;
@@ -71,18 +70,6 @@ async function buscarFactura(req, res) {
   };
 
   const baseUrl = 'https://balance.saludplus.co/facturasAdministar/BuscarListadofacturasDatos';
-  const queryParams = new URLSearchParams({
-    fechaInicial,
-    fechaFinal,
-    idEntidad,
-    idContrato,
-    SinNumero,
-    duplicadas,
-    idCuentaCobro,
-    estadoFacturacionElectronica,
-  }).toString();
-
-  const url = `${baseUrl}?${queryParams}`;
 
   const headers = {
     authority: 'balance.saludplus.co',
@@ -110,6 +97,23 @@ async function buscarFactura(req, res) {
     'x-requested-with': 'XMLHttpRequest',
   };
 
+  let data = null;
+
+  // Intentar primero con SinNumero = true
+  let SinNumero = true;
+  let queryParams = new URLSearchParams({
+    fechaInicial,
+    fechaFinal,
+    idEntidad,
+    idContrato,
+    SinNumero,
+    duplicadas,
+    idCuentaCobro,
+    estadoFacturacionElectronica,
+  }).toString();
+
+  let url = `${baseUrl}?${queryParams}`;
+
   try {
     const response = await axios.post(
       url,
@@ -127,32 +131,67 @@ async function buscarFactura(req, res) {
       { headers }
     );
 
-    const data = response.data;
+    data = response.data;
 
-    // Tomamos solo la primera fila de resultados
-    const row = data.aaData?.[0];
+    // Si no hay resultados, intentar con SinNumero = false
+    if (!data.aaData || data.aaData.length === 0) {
+      SinNumero = false;
+      queryParams = new URLSearchParams({
+        fechaInicial,
+        fechaFinal,
+        idEntidad,
+        idContrato,
+        SinNumero,
+        duplicadas,
+        idCuentaCobro,
+        estadoFacturacionElectronica,
+      }).toString();
 
-    if (!row) {
-      return res.status(404).json({
-        error: 'No se encontraron facturas para el criterio de búsqueda',
-      });
+      url = `${baseUrl}?${queryParams}`;
+
+      const responseRetry = await axios.post(
+        url,
+        new URLSearchParams({
+          ...dataTablesParams,
+          fechaInicial,
+          fechaFinal,
+          idEntidad,
+          idContrato,
+          SinNumero,
+          duplicadas,
+          idCuentaCobro,
+          estadoFacturacionElectronica,
+        }),
+        { headers }
+      );
+
+      data = responseRetry.data;
     }
-
-    // Según el ejemplo:
-    // ["5334294","5334294","156728 - FEH25957", ...]
-    const respuestaSimplificada = {
-      idFactura: row[0],        // 5334294
-      numeroAdmision: row[2],   // "156728 - FEH25957"
-    };
-
-    res.json(respuestaSimplificada);
   } catch (error) {
     console.error('Error al buscar facturas:', error.response?.data || error.message);
-    res.status(500).json({
+    return res.status(500).json({
       error: 'No se pudo obtener la información de facturas',
       details: error.response?.data || error.message,
     });
   }
+
+  // Tomamos solo la primera fila de resultados
+  const row = data.aaData?.[0];
+
+  if (!row) {
+    return res.status(404).json({
+      error: 'No se encontraron facturas para el criterio de búsqueda',
+    });
+  }
+
+  // Según el ejemplo:
+  // ["5334294","5334294","156728 - FEH25957", ...]
+  const respuestaSimplificada = {
+    idFactura: row[0],        // 5334294
+    numeroAdmision: row[2],   // "156728 - FEH25957"
+  };
+
+  res.json(respuestaSimplificada);
 }
 
 module.exports = { buscarFactura };

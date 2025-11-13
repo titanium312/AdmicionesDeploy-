@@ -4,258 +4,587 @@
   <meta charset="utf-8" />
   <title>Generar factura / Cambiar fecha / Enviar a la DIAN</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
     :root {
-      --bg: #0b1020;
-      --panel: #121a35;
-      --panel-2: #0f1530;
-      --text: #e6ebff;
-      --muted: #9fb0ff;
-      --accent: #5b8cff;
-      --accent-2: #7aa2ff;
-      --ok: #2ecc71;
-      --warn: #f1c40f;
-      --err: #e74c3c;
-      --border: rgba(255, 255, 255, .08);
-      --chip: #1b244a;
-      --shadow: 0 10px 30px rgba(0, 0, 0, .35);
-      --radius: 16px;
-      --spacing-xs: 8px;
-      --spacing-sm: 12px;
-      --spacing-md: 16px;
-      --spacing-lg: 20px;
-      --spacing-xl: 24px;
+      --bg: #050816;
+      --bg-soft: #0f172a;
+      --bg-softer: #111827;
+      --primary: #3b82f6;
+      --primary-soft: rgba(59, 130, 246, 0.15);
+      --primary-strong: #2563eb;
+      --accent: #22c55e;
+      --danger: #ef4444;
+      --warn: #facc15;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+      --radius-lg: 18px;
+      --radius-md: 10px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.75);
+      --transition-fast: 0.18s ease-out;
+      --transition-med: 0.25s ease-out;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
+
     * {
       box-sizing: border-box;
     }
-    body {
+
+    html, body {
       margin: 0;
-      background: linear-gradient(180deg, var(--bg), #070b18);
+      padding: 0;
+      font-family: var(--font-sans);
+      background: radial-gradient(circle at top, #1d2540 0, #050816 40%, #020617 100%);
       color: var(--text);
-      font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial;
-      padding: var(--spacing-lg);
+      min-height: 100vh;
     }
-    .shell {
-      max-width: 1040px;
-      margin: 0 auto;
-    }
-    .title {
+
+    body {
       display: flex;
-      align-items: center;
-      gap: var(--spacing-sm);
-      margin-bottom: var(--spacing-xl);
+      align-items: flex-start;
+      justify-content: center;
+      padding: 32px 16px;
     }
+
+    .shell {
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    .title {
+      margin-bottom: 18px;
+    }
+
     .title h1 {
-      font-size: 24px;
+      font-size: clamp(1.6rem, 2.2vw, 2rem);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
       margin: 0;
-      font-weight: 600;
+      color: #f9fafb;
     }
+
+    .title h1 span.emoji {
+      font-size: 1.8rem;
+      filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.7));
+    }
+
+    .title-sub {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+
     .card {
-      background: linear-gradient(180deg, var(--panel), var(--panel-2));
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      background: radial-gradient(circle at top left, #111827 0, #020617 60%);
+      border-radius: 24px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148, 163, 184, 0.15);
       overflow: hidden;
     }
-    .card .hd {
-      padding: var(--spacing-lg) var(--spacing-xl);
-      border-bottom: 1px solid var(--border);
+
+    .card-header {
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+      background: linear-gradient(90deg, rgba(55, 65, 81, 0.4), rgba(15, 23, 42, 0.95));
     }
-    .card .bd {
-      padding: var(--spacing-lg) var(--spacing-xl);
+
+    .card-header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
+
+    .card-title {
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill-env {
+      font-size: 0.75rem;
+      padding: 2px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.85);
+      color: var(--muted);
+    }
+
+    .card-subtitle {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .card-body {
+      padding: 18px 20px 20px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-top: 6px;
+    }
+
     .grid {
       display: grid;
-      gap: var(--spacing-md);
-      grid-template-columns: repeat(12, 1fr);
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 14px 18px;
+      align-items: flex-start;
     }
-    .grid .col-3 { grid-column: span 3; }
-    .grid .col-4 { grid-column: span 4; }
-    .grid .col-6 { grid-column: span 6; }
-    .grid .col-8 { grid-column: span 8; }
-    .grid .col-12 { grid-column: span 12; }
+
+    .col-3 { grid-column: span 3; }
+    .col-4 { grid-column: span 4; }
+    .col-5 { grid-column: span 5; }
+    .col-6 { grid-column: span 6; }
+    .col-12 { grid-column: span 12; }
+
     @media (max-width: 900px) {
-      body { padding: var(--spacing-md); }
-      .grid .col-3, .grid .col-4, .grid .col-6, .grid .col-8 { grid-column: span 12; }
-      .card .hd, .card .bd { padding: var(--spacing-md); }
+      .col-3, .col-4, .col-5, .col-6 { grid-column: span 12; }
     }
+
     label {
       display: block;
-      font-size: 14px;
-      color: var(--muted);
-      margin-bottom: var(--spacing-xs);
+      font-size: 0.82rem;
       font-weight: 500;
+      margin-bottom: 4px;
+      color: #e5e7eb;
     }
-    input, textarea {
+
+    input[type="number"],
+    input[type="date"],
+    textarea {
       width: 100%;
-      padding: var(--spacing-sm);
-      background: #0e1430;
-      color: var(--text);
-      border: 1px solid var(--border);
       border-radius: 12px;
-      font-size: 16px;
-      transition: border-color 0.2s;
-    }
-    input:focus, textarea:focus {
+      border: 1px solid var(--border);
+      background: var(--bg-softer);
+      color: var(--text);
+      font: inherit;
+      padding: 9px 10px;
       outline: none;
-      border-color: var(--accent);
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), transform 0.08s ease-out;
     }
+
+    input[type="number"]:focus,
+    input[type="date"]:focus,
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
+      background: #020617;
+      transform: translateY(-1px);
+    }
+
+    input[disabled],
+    textarea[disabled] {
+      opacity: 0.7;
+      cursor: not-allowed;
+      background: #020617;
+    }
+
     textarea {
       min-height: 120px;
       resize: vertical;
-      font-family: inherit;
+      line-height: 1.4;
+      font-size: 0.9rem;
+      white-space: pre;
     }
-    .btn {
-      background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      border: 0;
-      color: #fff;
-      padding: var(--spacing-sm) var(--spacing-md);
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: 600;
-      box-shadow: var(--shadow);
-      transition: opacity 0.2s;
-      font-size: 14px;
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
     }
-    .btn:hover:not(:disabled) { opacity: 0.9; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn.secondary {
-      background: #1d274d;
-      box-shadow: none;
-    }
-    .btn.ghost {
-      background: transparent;
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 6px 10px;
       border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.95);
+      cursor: pointer;
+      font-size: 0.78rem;
+      color: var(--muted);
+      transition: border-color var(--transition-fast), background var(--transition-fast), transform 0.08s ease-out, box-shadow var(--transition-fast);
+    }
+
+    .chip input {
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .chip:hover {
+      border-color: rgba(59, 130, 246, 0.9);
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .chip-active {
+      border-color: var(--primary);
+      background: radial-gradient(circle at top, rgba(37, 99, 235, 0.45), rgba(15, 23, 42, 0.98));
+      color: #e5e7eb;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .btn {
+      border-radius: var(--radius-pill);
+      border: none;
+      padding: 8px 16px;
+      font-size: 0.86rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background var(--transition-med), transform 0.08s ease-out, box-shadow var(--transition-med), opacity var(--transition-fast);
+      outline: none;
+      letter-spacing: 0.01em;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+      color: #eff6ff;
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.55);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 30px rgba(37, 99, 235, 0.7);
+    }
+
+    .btn-secondary {
+      background: rgba(31, 41, 55, 0.9);
+      color: #e5e7eb;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(15, 23, 42, 1);
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.9);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      padding-inline: 12px;
+      font-size: 0.8rem;
+    }
+
+    .btn-ghost:hover {
+      background: rgba(15, 23, 42, 0.8);
+      color: #e5e7eb;
+      transform: translateY(-1px);
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+      gap: 10px;
+      font-size: 0.8rem;
       color: var(--muted);
     }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      font-size: 0.76rem;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.8);
+    }
+
+    .status-dot-paused {
+      background: var(--warn);
+      box-shadow: 0 0 10px rgba(250, 204, 21, 0.9);
+    }
+
+    .status-dot-stopped {
+      background: var(--danger);
+      box-shadow: 0 0 10px rgba(248, 113, 113, 0.8);
+    }
+
     .progress {
       width: 100%;
-      height: 8px;
-      background: #0b1330;
+      background: rgba(15, 23, 42, 0.9);
       border-radius: 999px;
+      border: 1px solid rgba(31, 41, 55, 0.95);
       overflow: hidden;
-      border: 1px solid var(--border);
-      margin: var(--spacing-md) 0;
+      height: 9px;
+      position: relative;
     }
-    .progress > div {
+
+    .progress-bar {
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      transition: width 0.3s ease;
+      background: linear-gradient(90deg, var(--accent), var(--primary));
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+      transition: width 0.18s ease-out;
+      position: relative;
     }
+
+    .progress-bar::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.3) 0,
+        transparent 40%,
+        transparent 60%,
+        rgba(255, 255, 255, 0.3) 100%
+      );
+      background-size: 30px 30px;
+      mix-blend-mode: soft-light;
+      opacity: 0.7;
+      animation: shimmer 1.1s linear infinite;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -30px 0; }
+      100% { background-position: 30px 0; }
+    }
+
+    .table-wrapper {
+      margin-top: 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(31, 41, 55, 0.95);
+      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.95), #020617);
+      overflow: hidden;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      margin-top: var(--spacing-md);
-      font-size: 14px;
+      font-size: 0.8rem;
     }
+
+    thead {
+      background: linear-gradient(90deg, rgba(15, 23, 42, 0.95), rgba(30, 64, 175, 0.8));
+    }
+
     th, td {
-      padding: var(--spacing-sm) var(--spacing-md);
-      border-bottom: 1px solid var(--border);
+      padding: 7px 10px;
       text-align: left;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.95);
     }
+
     th {
-      background: #0f1733;
-      color: #cdd9ff;
-      font-weight: 600;
-      position: sticky;
-      top: 0;
-    }
-    .pill {
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-size: 12px;
       font-weight: 500;
+      font-size: 0.78rem;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
-    .pill.ok { background: rgba(46, 204, 113, .1); color: var(--ok); }
-    .pill.err { background: rgba(231, 76, 60, .1); color: var(--err); }
-    .pill.run { background: rgba(241, 196, 15, .1); color: var(--warn); }
-    .muted { color: var(--muted); }
-    .chips {
-      display: flex;
-      gap: var(--spacing-xs);
+
+    tbody tr:nth-child(even) {
+      background: rgba(15, 23, 42, 0.85);
+    }
+
+    tbody tr:nth-child(odd) {
+      background: rgba(2, 6, 23, 0.9);
+    }
+
+    tbody tr:hover {
+      background: rgba(15, 23, 42, 1);
+    }
+
+    td {
+      vertical-align: top;
+    }
+
+    td.col-msg {
+      max-width: 320px;
+      word-break: break-word;
+      font-size: 0.78rem;
+    }
+
+    .tag {
+      border-radius: 999px;
+      padding: 2px 9px;
+      font-size: 0.72rem;
+      display: inline-flex;
       align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+    }
+
+    .tag-ok {
+      background: rgba(34, 197, 94, 0.12);
+      color: #bbf7d0;
+      border: 1px solid rgba(34, 197, 94, 0.5);
+    }
+
+    .tag-error {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fecaca;
+      border: 1px solid rgba(248, 113, 113, 0.7);
+    }
+
+    .tag-info {
+      background: rgba(59, 130, 246, 0.12);
+      color: #bfdbfe;
+      border: 1px solid rgba(59, 130, 246, 0.6);
+    }
+
+    .tag-warn {
+      background: rgba(250, 204, 21, 0.14);
+      color: #fef9c3;
+      border: 1px solid rgba(250, 204, 21, 0.7);
+    }
+
+    .badge-small {
+      font-size: 0.74rem;
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      color: var(--muted);
+      background: rgba(15, 23, 42, 0.9);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pill-count {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      padding: 3px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 41, 55, 0.95);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .pill-count span.num {
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+
+    .pill-count span.total {
+      color: var(--muted);
+    }
+
+    .footer-hint {
+      margin-top: 10px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
       flex-wrap: wrap;
     }
-    .chip {
-      display: flex;
-      gap: var(--spacing-xs);
-      align-items: center;
-      background: var(--chip);
-      border: 1px solid var(--border);
-      padding: var(--spacing-xs) var(--spacing-sm);
-      border-radius: 12px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.2s;
+
+    .footer-hint b {
+      color: #e5e7eb;
     }
-    .chip:hover { background: #1b244a; }
-    .chip input {
-      width: auto;
-      accent-color: var(--accent-2);
-      margin: 0;
-    }
-    .hint {
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: var(--spacing-xs);
-      line-height: 1.4;
-    }
-    .status-row {
-      display: flex;
-      gap: var(--spacing-sm);
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .status-text {
-      font-size: 13px;
-      color: var(--muted);
-    }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .card .bd > div { animation: fadeIn 0.3s ease; }
   </style>
 </head>
 <body>
   <div class="shell">
     <div class="title">
-      <h1>🧾 Generar número / Cambiar fecha / Enviar a DIAN</h1>
-    </div>
-    <div class="card">
-      <div class="hd">
-        <span class="muted">Automatiza acciones por número de admisión</span>
-        <button id="btnClear" class="btn ghost">Limpiar</button>
+      <h1>
+        <span class="emoji">🧾</span>
+        <span>Gestión de facturas por admisión</span>
+      </h1>
+      <div class="title-sub">
+        Genera número de factura, actualiza fecha de emisión y envía a DIAN en lote, de forma automática.
       </div>
-      <div class="bd">
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="card-title">
+            Automatiza acciones por número de admisión
+            <span class="pill-env">API: https://total-oeyx.onrender.com</span>
+          </div>
+          <div class="card-subtitle">
+            Procesa cada admisión en orden y guarda un historial detallado de cada paso.
+          </div>
+        </div>
+        <button id="btnClear" class="btn btn-ghost" type="button">Limpiar todo</button>
+      </div>
+
+      <div class="card-body">
         <div class="grid">
           <div class="col-3">
             <label for="institucionId">Institución ID</label>
             <input id="institucionId" type="number" min="1" value="20" />
+            <div class="hint">Solo informativo, no se envía aún a la API.</div>
           </div>
+
           <div class="col-6">
-            <label>Qué deseas hacer</label>
+            <label>¿Qué deseas hacer?</label>
             <div class="chips" role="group" aria-label="Opciones de proceso">
-              <label class="chip">
-                <input id="chkFactura" type="checkbox" checked> Generar número de factura
+              <label class="chip chip-active">
+                <input id="chkFactura" type="checkbox" checked />
+                Generar número de factura
               </label>
               <label class="chip">
-                <input id="chkFecha" type="checkbox"> Cambiar fecha de emisión
+                <input id="chkFecha" type="checkbox" />
+                Cambiar fecha de emisión
               </label>
               <label class="chip">
-                <input id="chkEnviar" type="checkbox"> Enviar a la DIAN
+                <input id="chkEnviar" type="checkbox" />
+                Enviar a la DIAN
               </label>
             </div>
-            <div class="hint">Si marcas todo, el orden será: <b>Generar número → Cambiar fecha → Enviar a DIAN</b>. Cada acción es independiente.</div>
+            <div class="hint">
+              Siempre se buscará primero la factura por admisión.
+              <br>
+              Si marcas todo, el flujo será:
+              <b>Buscar factura → Generar número → Cambiar fecha → Enviar a DIAN</b>.
+            </div>
           </div>
+
           <div class="col-3">
             <label for="fechaEmision">Fecha de emisión</label>
             <input id="fechaEmision" type="date" disabled />
+            <div class="hint">
+              Se requiere cuando marcas <b>Cambiar fecha de emisión</b>.
+            </div>
           </div>
 
           <div class="col-12">
@@ -263,300 +592,492 @@
             <textarea id="admisiones" placeholder="142811&#10;144140&#10;..."></textarea>
           </div>
 
-          <div class="col-12 status-row">
-            <button id="btnStart" class="btn">Iniciar</button>
-            <button id="btnStop" class="btn secondary" disabled>Detener</button>
-            <span class="status-text" id="statusText">Procesa una por una y muestra resultados.</span>
+          <div class="col-12">
+            <div class="btn-row">
+              <button id="btnStart" class="btn btn-primary" type="button">
+                ▶ Iniciar proceso
+              </button>
+              <button id="btnStop" class="btn btn-secondary" type="button" disabled>
+                ⏸ Detener
+              </button>
+              <span class="muted">
+                Procesa uno por uno y registra el resultado de cada acción en la tabla.
+              </span>
+            </div>
           </div>
         </div>
 
-        <div class="progress">
-          <div id="progressBar"></div>
+        <div class="status-bar">
+          <div class="status-badge" id="statusBadge">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">En espera</span>
+          </div>
+          <div class="pill-count">
+            <span class="num" id="lblProcessed">0</span>
+            <span class="total" id="lblTotal">/ 0 procesadas</span>
+          </div>
         </div>
 
-        <table id="resultsTable">
-          <thead>
-            <tr>
-              <th>Admisión</th>
-              <th>Acción</th>
-              <th>Estado</th>
-              <th>Mensaje</th>
-              <th>ID Facturas</th>
-              <th>Hora</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+        <div style="margin-top: 10px;">
+          <div class="progress">
+            <div class="progress-bar" id="bar"></div>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table id="tbl">
+            <thead>
+              <tr>
+                <th>Admisión</th>
+                <th>Acción</th>
+                <th>Estado</th>
+                <th>Mensaje</th>
+                <th>ID Factura</th>
+                <th>Hora</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="footer-hint">
+          <span>🧠 Cada acción se maneja de forma independiente, si alguna falla se registra en el historial.</span>
+          <span><b>Tip:</b> Usa el botón “Limpiar todo” antes de iniciar un nuevo lote grande.</span>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    // ==============================================
+    // ==========================
     // ⚙️ CONFIGURACIÓN
-    // ==============================================
-    const urlBase = 'https://total-oeyx.onrender.com'; // Servidor de producción (cambia a 'http://localhost:3000' para desarrollo)
+    // ==========================
+    const API_BASE = 'https://total-oeyx.onrender.com';
 
-    // Elementos DOM
-    const elements = {
-      institucionId: document.getElementById('institucionId'),
-      chkFactura: document.getElementById('chkFactura'),
-      chkFecha: document.getElementById('chkFecha'),
-      chkEnviar: document.getElementById('chkEnviar'),
-      fechaEmision: document.getElementById('fechaEmision'),
-      admisiones: document.getElementById('admisiones'),
-      btnStart: document.getElementById('btnStart'),
-      btnStop: document.getElementById('btnStop'),
-      btnClear: document.getElementById('btnClear'),
-      progressBar: document.getElementById('progressBar'),
-      statusText: document.getElementById('statusText'),
-      tableBody: document.querySelector('#resultsTable tbody')
-    };
+    // ==========================
+    // 🔗 REFERENCIAS DOM
+    // ==========================
+    const institucionIdInput = document.getElementById('institucionId');
+    const chkFactura = document.getElementById('chkFactura');
+    const chkFecha = document.getElementById('chkFecha');
+    const chkEnviar = document.getElementById('chkEnviar');
+    const fechaEmisionInput = document.getElementById('fechaEmision');
+    const admisionesInput = document.getElementById('admisiones');
+    const btnStart = document.getElementById('btnStart');
+    const btnStop = document.getElementById('btnStop');
+    const btnClear = document.getElementById('btnClear');
+    const bar = document.getElementById('bar');
+    const tblBody = document.querySelector('#tbl tbody');
+    const statusBadge = document.getElementById('statusBadge');
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const lblProcessed = document.getElementById('lblProcessed');
+    const lblTotal = document.getElementById('lblTotal');
 
-    let isProcessing = false;
-    let currentIndex = 0;
-    let admisionList = [];
-    let abortController = null;
+    let isRunning = false;
+    let totalItems = 0;
+    let processedItems = 0;
 
-    // ==============================================
-    // 🎯 FUNCIONES DE UTILIDAD
-    // ==============================================
-    function formatDateTime() {
-      return new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' });
+    // ==========================
+    // 🧩 UTILIDADES
+    // ==========================
+
+    function todayAsInputValue() {
+      const d = new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
     }
 
-    function getPillClass(status) {
-      switch (status) {
-        case 'success': return 'pill ok';
-        case 'error': return 'pill err';
-        case 'running': return 'pill run';
-        default: return 'pill';
-      }
+    function formatDateForApi(yyyyMmDd) {
+      if (!yyyyMmDd) return '';
+      const [y, m, d] = yyyyMmDd.split('-');
+      return `${d}/${m}/${y}`; // DD/MM/YYYY
     }
 
-    function addTableRow(admision, action, status, message, idFactura, timestamp) {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${admision}</td>
-        <td>${action}</td>
-        <td><span class="${getPillClass(status)}">${status === 'success' ? 'OK' : status === 'error' ? 'ERR' : 'Ejecutando...'}</span></td>
-        <td>${message}</td>
-        <td>${idFactura || '-'}</td>
-        <td>${timestamp}</td>
-      `;
-      elements.tableBody.appendChild(row);
-      row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    function formatTime() {
+      const d = new Date();
+      return d.toLocaleTimeString('es-CO', { hour12: false });
     }
 
     function updateProgress(current, total) {
-      const percentage = (current / total) * 100;
-      elements.progressBar.style.width = `${percentage}%`;
-      elements.statusText.textContent = `Procesando ${current}/${total} (${Math.round(percentage)}%)`;
+      const pct = total === 0 ? 0 : Math.round((current / total) * 100);
+      bar.style.width = `${pct}%`;
+      processedItems = current;
+      lblProcessed.textContent = String(processedItems);
+      lblTotal.textContent = `/ ${totalItems} procesadas`;
     }
 
-    function resetUI() {
-      isProcessing = false;
-      currentIndex = 0;
-      admisionList = [];
-      elements.progressBar.style.width = '0%';
-      elements.statusText.textContent = 'Procesa una por una y muestra resultados.';
-      elements.btnStart.disabled = false;
-      elements.btnStop.disabled = true;
-      elements.tableBody.innerHTML = '';
-      abortController = null;
-    }
+    function setStatus(mode, text) {
+      statusText.textContent = text;
+      statusDot.classList.remove('status-dot-paused', 'status-dot-stopped');
+      statusDot.classList.add('status-dot');
 
-    // ==============================================
-    // 🔗 FUNCIONES DE API
-    // ==============================================
-    async function buscarIdFactura(admision) {
-      try {
-        const response = await fetch(`${urlBase}/BuscarIdFactura`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sSearch: admision })
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        if (!data.idFactura) throw new Error('ID de factura no encontrado');
-        return { idFactura: data.idFactura, numeroAdmision: data.numeroAdmision };
-      } catch (error) {
-        throw new Error(`Error buscando ID: ${error.message}`);
+      if (mode === 'idle') {
+        statusDot.style.background = 'var(--accent)';
+        statusDot.style.boxShadow = '0 0 10px rgba(34,197,94,0.8)';
+      } else if (mode === 'running') {
+        statusDot.style.background = 'var(--accent)';
+        statusDot.style.boxShadow = '0 0 10px rgba(34,197,94,0.8)';
+      } else if (mode === 'stopped') {
+        statusDot.style.background = 'var(--danger)';
+        statusDot.style.boxShadow = '0 0 10px rgba(248,113,113,0.9)';
+      } else if (mode === 'paused') {
+        statusDot.style.background = 'var(--warn)';
+        statusDot.style.boxShadow = '0 0 10px rgba(250,204,21,0.9)';
       }
     }
 
-    async function generarNumeroFactura(idFactura) {
-      try {
-        const response = await fetch(`${urlBase}/GenerarNumeroFactura?idFacturas=${idFactura}`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        if (data.valorRetorno !== 1) throw new Error(data.mensajeRetorno || 'Error en generación');
-        return { numeroFactura: data.numeroFactura, mensaje: data.mensajeRetorno };
-      } catch (error) {
-        throw new Error(`Error generando número: ${error.message}`);
+    function createTag(status) {
+      const span = document.createElement('span');
+      span.classList.add('tag');
+      if (status === 'OK') {
+        span.classList.add('tag-ok');
+        span.textContent = 'OK';
+      } else if (status === 'ERROR') {
+        span.classList.add('tag-error');
+        span.textContent = 'ERROR';
+      } else if (status === 'WARN') {
+        span.classList.add('tag-warn');
+        span.textContent = 'AVISO';
+      } else {
+        span.classList.add('tag-info');
+        span.textContent = status || 'INFO';
+      }
+      return span;
+    }
+
+    function logRow({ admision, accion, estado, mensaje, idFactura, hora }) {
+      const tr = document.createElement('tr');
+
+      const tdAdm = document.createElement('td');
+      tdAdm.textContent = admision || '-';
+
+      const tdAccion = document.createElement('td');
+      tdAccion.textContent = accion;
+
+      const tdEstado = document.createElement('td');
+      tdEstado.appendChild(createTag(estado));
+
+      const tdMsg = document.createElement('td');
+      tdMsg.classList.add('col-msg');
+      tdMsg.textContent = mensaje || '';
+
+      const tdId = document.createElement('td');
+      tdId.textContent = idFactura || '';
+
+      const tdHora = document.createElement('td');
+      tdHora.textContent = hora || formatTime();
+
+      tr.appendChild(tdAdm);
+      tr.appendChild(tdAccion);
+      tr.appendChild(tdEstado);
+      tr.appendChild(tdMsg);
+      tr.appendChild(tdId);
+      tr.appendChild(tdHora);
+
+      tblBody.appendChild(tr);
+    }
+
+    function setRunningState(running) {
+      isRunning = running;
+      btnStart.disabled = running;
+      btnStop.disabled = !running;
+      btnClear.disabled = running;
+      admisionesInput.disabled = running;
+      institucionIdInput.disabled = running;
+      chkFactura.disabled = running;
+      chkFecha.disabled = running;
+      chkEnviar.disabled = running;
+      fechaEmisionInput.disabled = running || !chkFecha.checked;
+
+      if (!running && processedItems === totalItems) {
+        setStatus('idle', 'Proceso finalizado');
       }
     }
 
-    async function cambiarFecha(idFactura, fecha) {
-      try {
-        const response = await fetch(`${urlBase}/cambiar-fecha`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idFactura, fechaEmision: fecha })
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        if (!data.ok || data.data.valorretorno !== 1) throw new Error(data.data?.mensajeRetorno || 'Error en cambio de fecha');
-        return { mensaje: data.data.mensajeRetorno };
-      } catch (error) {
-        throw new Error(`Error cambiando fecha: ${error.message}`);
+    // ==========================
+    // 🌐 LLAMADAS A LA API
+    // ==========================
+
+    async function apiBuscarIdFactura(admision) {
+      const body = { sSearch: String(admision).trim() };
+      const resp = await fetch(`${API_BASE}/BuscarIdFactura`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      if (!resp.ok) {
+        throw new Error(`Error HTTP ${resp.status} en BuscarIdFactura`);
       }
+
+      const data = await resp.json();
+      if (!data.idFactura) {
+        throw new Error('No se encontró idFactura en la respuesta.');
+      }
+
+      return data; // {idFactura, numeroAdmision?}
     }
 
-    async function enviarDian(idFactura) {
-      try {
-        const response = await fetch(`${urlBase}/EnviarDian`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idFacturas: idFactura })
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        // Asumiendo que el response indica éxito si no hay error (ajusta según API real)
-        return { mensaje: 'Enviado a DIAN correctamente' };
-      } catch (error) {
-        throw new Error(`Error enviando a DIAN: ${error.message}`);
+    async function apiGenerarNumeroFactura(idFactura) {
+      const url = `${API_BASE}/GenerarNumeroFactura?idFacturas=${encodeURIComponent(idFactura)}`;
+      const resp = await fetch(url);
+      if (!resp.ok) {
+        throw new Error(`Error HTTP ${resp.status} en GenerarNumeroFactura`);
       }
+      return resp.json();
     }
 
-    // ==============================================
-    // 🚀 PROCESADOR PRINCIPAL
-    // ==============================================
-    async function processAdmision(admision, index) {
-      const total = admisionList.length;
-      updateProgress(index + 1, total);
+    async function apiCambiarFecha(idFactura, fechaEmisionStr) {
+      const body = {
+        idFactura: String(idFactura),
+        fechaEmision: fechaEmisionStr
+      };
+      const resp = await fetch(`${API_BASE}/cambiar-fecha`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      if (!resp.ok) {
+        throw new Error(`Error HTTP ${resp.status} en cambiar-fecha`);
+      }
+      return resp.json();
+    }
+
+    async function apiEnviarDian(idFactura) {
+      const body = { idFacturas: String(idFactura) };
+      const resp = await fetch(`${API_BASE}/EnviarDian`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      if (!resp.ok) {
+        throw new Error(`Error HTTP ${resp.status} en EnviarDian`);
+      }
+      return resp.json();
+    }
+
+    // ==========================
+    // 🔁 PROCESAMIENTO
+    // ==========================
+
+    async function procesarAdmision(admision, fechaApiStr) {
+      const admisionLabel = String(admision).trim() || '(vacío)';
+
+      // 1. Buscar factura por admisión
       let idFactura = null;
-      let actionsPerformed = [];
-
-      addTableRow(admision, 'Iniciando...', 'running', 'Buscando ID de factura...', '-', formatDateTime());
-
       try {
-        // Paso 1: Buscar ID de factura
-        const searchResult = await buscarIdFactura(admision);
-        idFactura = searchResult.idFactura;
-        actionsPerformed.push('Búsqueda ID');
+        const data = await apiBuscarIdFactura(admision);
+        idFactura = data.idFactura;
+        const numeroAdmision = data.numeroAdmision || admisionLabel;
 
-        // Determinar acciones seleccionadas
-        const actions = [];
-        if (elements.chkFactura.checked) actions.push('generar');
-        if (elements.chkFecha.checked) actions.push('fecha');
-        if (elements.chkEnviar.checked) actions.push('enviar');
+        logRow({
+          admision: numeroAdmision,
+          accion: 'Buscar factura',
+          estado: 'OK',
+          mensaje: `Factura encontrada. idFactura = ${idFactura}`,
+          idFactura
+        });
+      } catch (error) {
+        logRow({
+          admision: admisionLabel,
+          accion: 'Buscar factura',
+          estado: 'ERROR',
+          mensaje: error.message || 'Error al buscar factura.',
+          idFactura: ''
+        });
+        // Sin idFactura no se puede seguir
+        return;
+      }
 
-        // Ejecutar acciones en orden
-        for (const action of actions) {
-          let actionMsg = '';
-          switch (action) {
-            case 'generar':
-              const genResult = await generarNumeroFactura(idFactura);
-              actionMsg = `Número generado: ${genResult.numeroFactura}`;
-              actionsPerformed.push('Generar número');
-              break;
-            case 'fecha':
-              const fecha = elements.fechaEmision.value;
-              if (!fecha) throw new Error('Fecha de emisión requerida');
-              const dateResult = await cambiarFecha(idFactura, fecha);
-              actionMsg = dateResult.mensaje;
-              actionsPerformed.push('Cambiar fecha');
-              break;
-            case 'enviar':
-              const sendResult = await enviarDian(idFactura);
-              actionMsg = sendResult.mensaje;
-              actionsPerformed.push('Enviar DIAN');
-              break;
-          }
-          addTableRow(admision, action, 'running', actionMsg, idFactura, formatDateTime());
+      // 2. Generar número de factura (si está marcado)
+      if (chkFactura.checked) {
+        try {
+          const data = await apiGenerarNumeroFactura(idFactura);
+          const numeroFactura = data.numeroFactura ?? '(sin número)';
+          const descripcion = data.mensajeRetorno || 'Número de factura generado.';
+
+          logRow({
+            admision: admisionLabel,
+            accion: 'Generar número',
+            estado: 'OK',
+            mensaje: `${descripcion} Número: ${numeroFactura}`,
+            idFactura
+          });
+        } catch (error) {
+          logRow({
+            admision: admisionLabel,
+            accion: 'Generar número',
+            estado: 'ERROR',
+            mensaje: error.message || 'Error al generar número de factura.',
+            idFactura
+          });
+        }
+      }
+
+      // 3. Cambiar fecha de emisión (si está marcado)
+      if (chkFecha.checked && fechaApiStr) {
+        try {
+          const data = await apiCambiarFecha(idFactura, fechaApiStr);
+          const ok = data.ok;
+          const msg = (data.data && data.data.mensajeRetorno) || 'Fecha de emisión actualizada.';
+          const status = ok ? 'OK' : 'WARN';
+
+          logRow({
+            admision: admisionLabel,
+            accion: 'Cambiar fecha',
+            estado: status,
+            mensaje: `${msg} (${fechaApiStr})`,
+            idFactura
+          });
+        } catch (error) {
+          logRow({
+            admision: admisionLabel,
+            accion: 'Cambiar fecha',
+            estado: 'ERROR',
+            mensaje: error.message || 'Error al cambiar fecha.',
+            idFactura
+          });
+        }
+      }
+
+      // 4. Enviar a DIAN (si está marcado)
+      if (chkEnviar.checked) {
+        try {
+          const data = await apiEnviarDian(idFactura);
+          const msg =
+            data.mensajeRetorno ||
+            data.mensaje ||
+            'Factura enviada a la DIAN (revisar respuesta del backend).';
+
+          logRow({
+            admision: admisionLabel,
+            accion: 'Enviar DIAN',
+            estado: 'OK',
+            mensaje: msg,
+            idFactura
+          });
+        } catch (error) {
+          logRow({
+            admision: admisionLabel,
+            accion: 'Enviar DIAN',
+            estado: 'ERROR',
+            mensaje: error.message || 'Error al enviar a la DIAN.',
+            idFactura
+          });
+        }
+      }
+    }
+
+    async function procesarLote() {
+      const rawText = admisionesInput.value || '';
+      const líneas = rawText.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+
+      if (!líneas.length) {
+        alert('Por favor ingresa al menos un número de admisión.');
+        return;
+      }
+
+      if (!chkFactura.checked && !chkFecha.checked && !chkEnviar.checked) {
+        const continuar = confirm(
+          'No has seleccionado ninguna acción (solo se buscará la factura). ¿Deseas continuar?'
+        );
+        if (!continuar) return;
+      }
+
+      if (chkFecha.checked) {
+        if (!fechaEmisionInput.value) {
+          alert('Selecciona una fecha de emisión para poder cambiar la fecha.');
+          return;
+        }
+      }
+
+      totalItems = líneas.length;
+      processedItems = 0;
+      updateProgress(0, totalItems);
+      setRunningState(true);
+      setStatus('running', 'Procesando admisiones...');
+
+      const fechaApiStr = chkFecha.checked ? formatDateForApi(fechaEmisionInput.value) : null;
+
+      for (let i = 0; i < líneas.length; i++) {
+        if (!isRunning) {
+          setStatus('stopped', 'Proceso detenido por el usuario');
+          break;
         }
 
-        // Éxito final
-        const finalMsg = actionsPerformed.length > 0 
-          ? `Completado: ${actionsPerformed.join(', ')}` 
-          : 'Sin acciones seleccionadas';
-        addTableRow(admision, 'Finalizado', 'success', finalMsg, idFactura, formatDateTime());
+        const admision = líneas[i];
+        await procesarAdmision(admision, fechaApiStr);
+        updateProgress(i + 1, totalItems);
+      }
 
-      } catch (error) {
-        const errorMsg = error.message;
-        addTableRow(admision, 'Error', 'error', errorMsg, idFactura || '-', formatDateTime());
+      setRunningState(false);
+    }
+
+    // ==========================
+    // 🎛️ EVENTOS UI
+    // ==========================
+
+    // chips visualmente activas
+    function syncChip(label, input) {
+      if (input.checked) {
+        label.classList.add('chip-active');
+      } else {
+        label.classList.remove('chip-active');
       }
     }
 
-    async function startProcessing() {
-      if (isProcessing) return;
-      const text = elements.admisiones.value.trim();
-      if (!text) {
-        alert('Ingresa al menos un número de admisión.');
-        return;
-      }
-
-      admisionList = text.split('\n').map(line => line.trim()).filter(line => line);
-      if (admisionList.length === 0) {
-        alert('No se encontraron números de admisión válidos.');
-        return;
-      }
-
-      // Validar fecha si está seleccionada
-      if (elements.chkFecha.checked && !elements.fechaEmision.value) {
-        alert('Selecciona una fecha de emisión.');
-        return;
-      }
-
-      // Habilitar fecha si checkbox fecha está marcado
-      elements.fechaEmision.disabled = !elements.chkFecha.checked;
-
-      isProcessing = true;
-      elements.btnStart.disabled = true;
-      elements.btnStop.disabled = false;
-      elements.tableBody.innerHTML = '';
-
-      abortController = new AbortController();
-
-      for (let i = 0; i < admisionList.length; i++) {
-        if (!isProcessing) break; // Detenido por usuario
-        if (abortController.signal.aborted) break;
-        await processAdmision(admisionList[i], i);
-      }
-
-      resetUI();
-    }
-
-    function stopProcessing() {
-      if (!isProcessing) return;
-      isProcessing = false;
-      if (abortController) abortController.abort();
-      elements.statusText.textContent = 'Procesamiento detenido.';
-    }
-
-    // ==============================================
-    // 🎛️ EVENT LISTENERS
-    // ==============================================
-    elements.btnStart.addEventListener('click', startProcessing);
-    elements.btnStop.addEventListener('click', stopProcessing);
-    elements.btnClear.addEventListener('click', () => {
-      elements.admisiones.value = '';
-      elements.fechaEmision.value = '';
-      resetUI();
+    document.querySelectorAll('.chip').forEach(chip => {
+      const input = chip.querySelector('input');
+      syncChip(chip, input);
+      input.addEventListener('change', () => {
+        syncChip(chip, input);
+        if (input === chkFecha) {
+          fechaEmisionInput.disabled = !chkFecha.checked || isRunning;
+        }
+      });
     });
 
-    // Habilitar/deshabilitar fecha basada en checkbox
-    elements.chkFecha.addEventListener('change', () => {
-      elements.fechaEmision.disabled = !elements.chkFecha.checked;
-      if (elements.fechaEmision.disabled) elements.fechaEmision.value = '';
+    btnStart.addEventListener('click', () => {
+      procesarLote().catch(err => {
+        console.error(err);
+        alert('Ocurrió un error inesperado al procesar el lote.');
+        setRunningState(false);
+      });
     });
 
-    // Inicialización
-    elements.fechaEmision.disabled = true;
-    elements.btnStop.disabled = true;
+    btnStop.addEventListener('click', () => {
+      if (isRunning) {
+        isRunning = false; // el loop se detendrá una vez termine la admisión actual
+        setStatus('stopped', 'Deteniendo después de la admisión actual...');
+      }
+    });
 
-    console.log('Aplicación inicializada. Servidor:', urlBase);
+    btnClear.addEventListener('click', () => {
+      admisionesInput.value = '';
+      tblBody.innerHTML = '';
+      bar.style.width = '0%';
+      totalItems = 0;
+      processedItems = 0;
+      lblProcessed.textContent = '0';
+      lblTotal.textContent = '/ 0 procesadas';
+      setStatus('idle', 'En espera');
+    });
+
+    // ==========================
+    // 🚀 INICIALIZACIÓN
+    // ==========================
+    document.addEventListener('DOMContentLoaded', () => {
+      fechaEmisionInput.value = todayAsInputValue();
+      fechaEmisionInput.disabled = !chkFecha.checked;
+      setStatus('idle', 'En espera');
+      lblProcessed.textContent = '0';
+      lblTotal.textContent = '/ 0 procesadas';
+    });
   </script>
 </body>
 </html>
