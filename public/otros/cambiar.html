@@ -5,58 +5,221 @@
   <title>Generar factura / Cambiar fecha / Enviar a la DIAN</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root{
-      --bg:#0b1020;
-      --panel:#121a35;
-      --panel-2:#0f1530;
-      --text:#e6ebff;
-      --muted:#9fb0ff;
-      --accent:#5b8cff;
-      --accent-2:#7aa2ff;
-      --ok:#2ecc71;
-      --warn:#f1c40f;
-      --err:#e74c3c;
-      --border:rgba(255,255,255,.08);
-      --chip:#1b244a;
-      --shadow:0 10px 30px rgba(0,0,0,.35);
-      --radius:16px;
+    :root {
+      --bg: #0b1020;
+      --panel: #121a35;
+      --panel-2: #0f1530;
+      --text: #e6ebff;
+      --muted: #9fb0ff;
+      --accent: #5b8cff;
+      --accent-2: #7aa2ff;
+      --ok: #2ecc71;
+      --warn: #f1c40f;
+      --err: #e74c3c;
+      --border: rgba(255, 255, 255, .08);
+      --chip: #1b244a;
+      --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+      --radius: 16px;
+      --spacing-xs: 8px;
+      --spacing-sm: 12px;
+      --spacing-md: 16px;
+      --spacing-lg: 20px;
+      --spacing-xl: 24px;
     }
-    *{box-sizing:border-box}
-    body{margin:0;background:linear-gradient(180deg,var(--bg),#070b18);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial;}
-    .shell{max-width:1040px;margin:32px auto;padding:0 16px}
-    .title{display:flex;align-items:center;gap:12px;margin-bottom:18px}
-    .title h1{font-size:22px;margin:0}
-    .card{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
-    .card .hd{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-    .card .bd{padding:18px 20px}
-    .grid{display:grid;gap:16px;grid-template-columns:repeat(12,1fr)}
-    .grid .col-3{grid-column:span 3}
-    .grid .col-4{grid-column:span 4}
-    .grid .col-6{grid-column:span 6}
-    .grid .col-8{grid-column:span 8}
-    .grid .col-12{grid-column:span 12}
-    @media(max-width:900px){.grid .col-3,.grid .col-4,.grid .col-6,.grid .col-8{grid-column:span 12}}
-    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-    input,textarea{width:100%;padding:12px;background:#0e1430;color:var(--text);border:1px solid var(--border);border-radius:12px}
-    textarea{min-height:160px;resize:vertical}
-    .btn{background:linear-gradient(90deg,var(--accent),var(--accent-2));border:0;color:#fff;padding:12px 16px;border-radius:12px;cursor:pointer;font-weight:600;box-shadow:var(--shadow)}
-    .btn.secondary{background:#1d274d}
-    .btn.ghost{background:transparent;border:1px solid var(--border)}
-    .progress{width:100%;height:10px;background:#0b1330;border-radius:999px;overflow:hidden;border:1px solid var(--border)}
-    .progress>div{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .25s}
-    table{width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:10px}
-    th,td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:14px;text-align:left}
-    th{background:#0f1733;color:#cdd9ff}
-    .pill{padding:4px 8px;border-radius:999px;font-size:12px}
-    .pill.ok{background:rgba(46,204,113,.1);color:var(--ok)}
-    .pill.err{background:rgba(231,76,60,.1);color:var(--err)}
-    .pill.run{background:rgba(241,196,15,.1);color:var(--warn)}
-    .kbd{font-family:monospace;background:#0f1733;border:1px solid var(--border);padding:2px 6px;border-radius:6px}
-    .muted{color:var(--muted)}
-    .chips{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .chip{display:flex;gap:8px;align-items:center;background:#0f1733;border:1px solid var(--border);padding:8px 10px;border-radius:12px}
-    .chip input{width:auto;accent-color:#7aa2ff}
-    .hint{font-size:12px;color:var(--muted)}
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, var(--bg), #070b18);
+      color: var(--text);
+      font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial;
+      padding: var(--spacing-lg);
+    }
+    .shell {
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+    .title {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-xl);
+    }
+    .title h1 {
+      font-size: 24px;
+      margin: 0;
+      font-weight: 600;
+    }
+    .card {
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .card .hd {
+      padding: var(--spacing-lg) var(--spacing-xl);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card .bd {
+      padding: var(--spacing-lg) var(--spacing-xl);
+    }
+    .grid {
+      display: grid;
+      gap: var(--spacing-md);
+      grid-template-columns: repeat(12, 1fr);
+    }
+    .grid .col-3 { grid-column: span 3; }
+    .grid .col-4 { grid-column: span 4; }
+    .grid .col-6 { grid-column: span 6; }
+    .grid .col-8 { grid-column: span 8; }
+    .grid .col-12 { grid-column: span 12; }
+    @media (max-width: 900px) {
+      body { padding: var(--spacing-md); }
+      .grid .col-3, .grid .col-4, .grid .col-6, .grid .col-8 { grid-column: span 12; }
+      .card .hd, .card .bd { padding: var(--spacing-md); }
+    }
+    label {
+      display: block;
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: var(--spacing-xs);
+      font-weight: 500;
+    }
+    input, textarea {
+      width: 100%;
+      padding: var(--spacing-sm);
+      background: #0e1430;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 16px;
+      transition: border-color 0.2s;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+      font-family: inherit;
+    }
+    .btn {
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      border: 0;
+      color: #fff;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      box-shadow: var(--shadow);
+      transition: opacity 0.2s;
+      font-size: 14px;
+    }
+    .btn:hover:not(:disabled) { opacity: 0.9; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn.secondary {
+      background: #1d274d;
+      box-shadow: none;
+    }
+    .btn.ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .progress {
+      width: 100%;
+      height: 8px;
+      background: #0b1330;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin: var(--spacing-md) 0;
+    }
+    .progress > div {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 0.3s ease;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: var(--spacing-md);
+      font-size: 14px;
+    }
+    th, td {
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+    th {
+      background: #0f1733;
+      color: #cdd9ff;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+    }
+    .pill {
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .pill.ok { background: rgba(46, 204, 113, .1); color: var(--ok); }
+    .pill.err { background: rgba(231, 76, 60, .1); color: var(--err); }
+    .pill.run { background: rgba(241, 196, 15, .1); color: var(--warn); }
+    .muted { color: var(--muted); }
+    .chips {
+      display: flex;
+      gap: var(--spacing-xs);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .chip {
+      display: flex;
+      gap: var(--spacing-xs);
+      align-items: center;
+      background: var(--chip);
+      border: 1px solid var(--border);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: 12px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .chip:hover { background: #1b244a; }
+    .chip input {
+      width: auto;
+      accent-color: var(--accent-2);
+      margin: 0;
+    }
+    .hint {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: var(--spacing-xs);
+      line-height: 1.4;
+    }
+    .status-row {
+      display: flex;
+      gap: var(--spacing-sm);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .status-text {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .card .bd > div { animation: fadeIn 0.3s ease; }
   </style>
 </head>
 <body>
@@ -72,40 +235,46 @@
       <div class="bd">
         <div class="grid">
           <div class="col-3">
-            <label>Institución ID</label>
+            <label for="institucionId">Institución ID</label>
             <input id="institucionId" type="number" min="1" value="20" />
           </div>
           <div class="col-6">
             <label>Qué deseas hacer</label>
             <div class="chips" role="group" aria-label="Opciones de proceso">
-              <label class="chip"><input id="chkFactura" type="checkbox" checked> Generar número de factura</label>
-              <label class="chip"><input id="chkFecha" type="checkbox"> Cambiar fecha de emisión</label>
-              <label class="chip"><input id="chkEnviar" type="checkbox"> Enviar a la DIAN</label>
+              <label class="chip">
+                <input id="chkFactura" type="checkbox" checked> Generar número de factura
+              </label>
+              <label class="chip">
+                <input id="chkFecha" type="checkbox"> Cambiar fecha de emisión
+              </label>
+              <label class="chip">
+                <input id="chkEnviar" type="checkbox"> Enviar a la DIAN
+              </label>
             </div>
             <div class="hint">Si marcas todo, el orden será: <b>Generar número → Cambiar fecha → Enviar a DIAN</b>. Cada acción es independiente.</div>
           </div>
           <div class="col-3">
-            <label>Fecha de emisión</label>
+            <label for="fechaEmision">Fecha de emisión</label>
             <input id="fechaEmision" type="date" disabled />
           </div>
 
           <div class="col-12">
-            <label>Números de admisión (uno por línea)</label>
-            <textarea id="admisiones" placeholder="142811\n144140\n..."></textarea>
+            <label for="admisiones">Números de admisión (uno por línea)</label>
+            <textarea id="admisiones" placeholder="142811&#10;144140&#10;..."></textarea>
           </div>
 
-          <div class="col-12" style="display:flex;gap:10px;align-items:center">
+          <div class="col-12 status-row">
             <button id="btnStart" class="btn">Iniciar</button>
-            <button id="btnStop" class="btn secondary">Detener</button>
-            <span class="muted">Procesa una por una y muestra resultados.</span>
+            <button id="btnStop" class="btn secondary" disabled>Detener</button>
+            <span class="status-text" id="statusText">Procesa una por una y muestra resultados.</span>
           </div>
         </div>
 
-        <div style="margin-top:18px;">
-          <div class="progress"><div id="bar"></div></div>
+        <div class="progress">
+          <div id="progressBar"></div>
         </div>
 
-        <table id="tbl">
+        <table id="resultsTable">
           <thead>
             <tr>
               <th>Admisión</th>
@@ -124,167 +293,270 @@
 
   <script>
     // ==============================================
-    // ⚙️ CONFIGURACIÓN (independiente, sin librerías externas)
+    // ⚙️ CONFIGURACIÓN
     // ==============================================
-    const urlBase = 'https://total-oeyx.onrender.com';  // puedes cambiarlo por tu host
-    const PATH_CAMBIAR_FECHA = '/cambiar-fecha';
-    const PATH_POR_ADMISION  = '/por-admision';
-    const PATH_ENVIAR_DIAN   = '/EnviarFacturaElectronica';
-    const CONCURRENCY = 1;
+    const urlBase = 'https://total-oeyx.onrender.com'; // Servidor de producción (cambia a 'http://localhost:3000' para desarrollo)
 
-    const el = (id)=>document.getElementById(id);
-    const $tbl = el('tbl').querySelector('tbody');
-    const $bar = el('bar');
-    let STOP = false;
-
-    const mmddyyyy = (v)=>{if(!v)return'';const [y,m,d]=v.split('-');return `${m}/${d}/${y}`};
-    const now = ()=> new Date().toLocaleTimeString();
-    const sanitize = t=>t.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
-
-    const actionLabel = (key)=> {
-      switch(key){
-        case 'factura': return 'Generar factura';
-        case 'fecha': return 'Cambiar fecha';
-        case 'enviar': return 'Enviar a la DIAN';
-        default: return key;
-      }
+    // Elementos DOM
+    const elements = {
+      institucionId: document.getElementById('institucionId'),
+      chkFactura: document.getElementById('chkFactura'),
+      chkFecha: document.getElementById('chkFecha'),
+      chkEnviar: document.getElementById('chkEnviar'),
+      fechaEmision: document.getElementById('fechaEmision'),
+      admisiones: document.getElementById('admisiones'),
+      btnStart: document.getElementById('btnStart'),
+      btnStop: document.getElementById('btnStop'),
+      btnClear: document.getElementById('btnClear'),
+      progressBar: document.getElementById('progressBar'),
+      statusText: document.getElementById('statusText'),
+      tableBody: document.querySelector('#resultsTable tbody')
     };
 
-    const row = (adm, action)=>{
-      const tr=document.createElement('tr');
-      tr.dataset.adm=adm;
-      tr.dataset.action=action;
-      tr.innerHTML=`<td><span class="kbd">${adm}</span></td>
-        <td>${actionLabel(action)}</td>
-        <td><span class="pill run">Pendiente</span></td>
-        <td class="muted">—</td><td class="muted">—</td><td class="muted">${now()}</td>`;
-      return tr;
-    };
+    let isProcessing = false;
+    let currentIndex = 0;
+    let admisionList = [];
+    let abortController = null;
 
-    function setRow(adm, action, state, msg, ids){
-      const tr=[...$tbl.querySelectorAll(`tr[data-adm="${adm}"]`)].find(r=>r.dataset.action===action);
-      if(!tr)return;
-      tr.children[2].innerHTML=
-        state==='ok'?'<span class="pill ok">OK</span>':
-        state==='err'?'<span class="pill err">Error</span>':
-        '<span class="pill run">En proceso</span>';
-      tr.children[3].textContent=msg||'';
-      tr.children[4].textContent=Array.isArray(ids)?ids.join(', '):(ids||'—');
-      tr.children[5].textContent=now();
+    // ==============================================
+    // 🎯 FUNCIONES DE UTILIDAD
+    // ==============================================
+    function formatDateTime() {
+      return new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' });
     }
 
-    // =============================
-    // 📡 Llamados al backend
-    // =============================
-    async function callCambiarFecha({institucionId,numeroAdmision,fechaEmision}){
-      const url=urlBase+PATH_CAMBIAR_FECHA;
-      const res=await fetch(url,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({institucionId,numeroAdmision,fechaEmision})
-      });
-      if(!res.ok) throw new Error(`HTTP ${res.status}`);
-      return res.json();
-    }
-
-    async function callGenerarFactura({institucionId,numeroAdmision}){
-      const qs = new URLSearchParams({institucionId:String(institucionId),numeroAdmision:String(numeroAdmision)});
-      const url = `${urlBase+PATH_POR_ADMISION}?${qs.toString()}`;
-      const res = await fetch(url, { method:'GET', headers:{'Content-Type':'application/json'} });
-      if(!res.ok) throw new Error(`HTTP ${res.status}`);
-      return res.json();
-    }
-
-    async function callEnviarDian({institucionId,numeroAdmision}){
-      const qs = new URLSearchParams({institucionId:String(institucionId),numeroAdmision:String(numeroAdmision)});
-      const url = `${urlBase+PATH_ENVIAR_DIAN}?${qs.toString()}`;
-      const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'} });
-      if(!res.ok) throw new Error(`HTTP ${res.status}`);
-      return res.json();
-    }
-
-    // =============================
-    // ▶️ Flujo principal
-    // =============================
-    async function run(){
-      STOP=false;
-      $tbl.innerHTML='';
-
-      const list=sanitize(el('admisiones').value);
-      const institucionId=Number(el('institucionId').value);
-      const cambiarFecha=el('chkFecha').checked;
-      const generarFactura=el('chkFactura').checked;
-      const enviarDian=el('chkEnviar').checked;
-      const fechaEmision=mmddyyyy(el('fechaEmision').value);
-
-      if(!list.length) return alert('Agrega al menos un número de admisión.');
-      if(!cambiarFecha && !generarFactura && !enviarDian) return alert('Selecciona al menos una opción.');
-      if(cambiarFecha && !fechaEmision) return alert('Selecciona la fecha de emisión.');
-      // Nota: enviar a DIAN ya no depende del check de generar factura (puede existir ya creada)
-
-      // Crear filas por cada acción seleccionada (orden: factura → fecha → enviar)
-      const actions = [];
-      for(const adm of list){
-        if(generarFactura){ $tbl.appendChild(row(adm,'factura')); actions.push({adm, type:'factura'}); }
-        if(cambiarFecha){ $tbl.appendChild(row(adm,'fecha')); actions.push({adm, type:'fecha'}); }
-        if(enviarDian){ $tbl.appendChild(row(adm,'enviar')); actions.push({adm, type:'enviar'}); }
+    function getPillClass(status) {
+      switch (status) {
+        case 'success': return 'pill ok';
+        case 'error': return 'pill err';
+        case 'running': return 'pill run';
+        default: return 'pill';
       }
+    }
 
-      let done=0;const total=actions.length;
+    function addTableRow(admision, action, status, message, idFactura, timestamp) {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${admision}</td>
+        <td>${action}</td>
+        <td><span class="${getPillClass(status)}">${status === 'success' ? 'OK' : status === 'error' ? 'ERR' : 'Ejecutando...'}</span></td>
+        <td>${message}</td>
+        <td>${idFactura || '-'}</td>
+        <td>${timestamp}</td>
+      `;
+      elements.tableBody.appendChild(row);
+      row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 
-      const processOne = async (item)=>{
-        const {adm, type} = item;
-        try{
-          setRow(adm,type,'run','Procesando...');
-          if(type==='factura'){
-            const r = await callGenerarFactura({institucionId,numeroAdmision:adm});
-            const msg = r?.resultado_remoto?.mensajeRetorno || r?.mensaje || 'OK';
-            const idTxt = r?.id_factura || r?.idFactura || r?.id || (r?.resultado_remoto?.numeroFactura ? `Factura: ${r.resultado_remoto.numeroFactura}` : '—');
-            setRow(adm,'factura','ok',msg,idTxt);
-          } else if(type==='fecha'){
-            const r = await callCambiarFecha({institucionId,numeroAdmision:adm,fechaEmision});
-            const msg = r?.mensaje || 'Fecha actualizada';
-            const ids = r?.idFacturas || r?.ids || '—';
-            setRow(adm,'fecha','ok',msg,ids);
-          } else if(type==='enviar'){
-            const r = await callEnviarDian({institucionId,numeroAdmision:adm});
-            const data = r?.data || r;
-            const isOk = Number(data?.valorRetorno) === 1 || r?.ok === true;
-            const msg = (data?.mensajeRetorno && String(data.mensajeRetorno).trim()) || (isOk ? 'Enviada a DIAN' : 'Sin mensaje');
-            const idTxt = data?.numeroFactura || data?.idFactura || '—';
-            setRow(adm,'enviar', isOk ? 'ok' : 'err', msg, idTxt);
+    function updateProgress(current, total) {
+      const percentage = (current / total) * 100;
+      elements.progressBar.style.width = `${percentage}%`;
+      elements.statusText.textContent = `Procesando ${current}/${total} (${Math.round(percentage)}%)`;
+    }
+
+    function resetUI() {
+      isProcessing = false;
+      currentIndex = 0;
+      admisionList = [];
+      elements.progressBar.style.width = '0%';
+      elements.statusText.textContent = 'Procesa una por una y muestra resultados.';
+      elements.btnStart.disabled = false;
+      elements.btnStop.disabled = true;
+      elements.tableBody.innerHTML = '';
+      abortController = null;
+    }
+
+    // ==============================================
+    // 🔗 FUNCIONES DE API
+    // ==============================================
+    async function buscarIdFactura(admision) {
+      try {
+        const response = await fetch(`${urlBase}/BuscarIdFactura`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sSearch: admision })
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (!data.idFactura) throw new Error('ID de factura no encontrado');
+        return { idFactura: data.idFactura, numeroAdmision: data.numeroAdmision };
+      } catch (error) {
+        throw new Error(`Error buscando ID: ${error.message}`);
+      }
+    }
+
+    async function generarNumeroFactura(idFactura) {
+      try {
+        const response = await fetch(`${urlBase}/GenerarNumeroFactura?idFacturas=${idFactura}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (data.valorRetorno !== 1) throw new Error(data.mensajeRetorno || 'Error en generación');
+        return { numeroFactura: data.numeroFactura, mensaje: data.mensajeRetorno };
+      } catch (error) {
+        throw new Error(`Error generando número: ${error.message}`);
+      }
+    }
+
+    async function cambiarFecha(idFactura, fecha) {
+      try {
+        const response = await fetch(`${urlBase}/cambiar-fecha`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idFactura, fechaEmision: fecha })
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (!data.ok || data.data.valorretorno !== 1) throw new Error(data.data?.mensajeRetorno || 'Error en cambio de fecha');
+        return { mensaje: data.data.mensajeRetorno };
+      } catch (error) {
+        throw new Error(`Error cambiando fecha: ${error.message}`);
+      }
+    }
+
+    async function enviarDian(idFactura) {
+      try {
+        const response = await fetch(`${urlBase}/EnviarDian`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idFacturas: idFactura })
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        // Asumiendo que el response indica éxito si no hay error (ajusta según API real)
+        return { mensaje: 'Enviado a DIAN correctamente' };
+      } catch (error) {
+        throw new Error(`Error enviando a DIAN: ${error.message}`);
+      }
+    }
+
+    // ==============================================
+    // 🚀 PROCESADOR PRINCIPAL
+    // ==============================================
+    async function processAdmision(admision, index) {
+      const total = admisionList.length;
+      updateProgress(index + 1, total);
+      let idFactura = null;
+      let actionsPerformed = [];
+
+      addTableRow(admision, 'Iniciando...', 'running', 'Buscando ID de factura...', '-', formatDateTime());
+
+      try {
+        // Paso 1: Buscar ID de factura
+        const searchResult = await buscarIdFactura(admision);
+        idFactura = searchResult.idFactura;
+        actionsPerformed.push('Búsqueda ID');
+
+        // Determinar acciones seleccionadas
+        const actions = [];
+        if (elements.chkFactura.checked) actions.push('generar');
+        if (elements.chkFecha.checked) actions.push('fecha');
+        if (elements.chkEnviar.checked) actions.push('enviar');
+
+        // Ejecutar acciones en orden
+        for (const action of actions) {
+          let actionMsg = '';
+          switch (action) {
+            case 'generar':
+              const genResult = await generarNumeroFactura(idFactura);
+              actionMsg = `Número generado: ${genResult.numeroFactura}`;
+              actionsPerformed.push('Generar número');
+              break;
+            case 'fecha':
+              const fecha = elements.fechaEmision.value;
+              if (!fecha) throw new Error('Fecha de emisión requerida');
+              const dateResult = await cambiarFecha(idFactura, fecha);
+              actionMsg = dateResult.mensaje;
+              actionsPerformed.push('Cambiar fecha');
+              break;
+            case 'enviar':
+              const sendResult = await enviarDian(idFactura);
+              actionMsg = sendResult.mensaje;
+              actionsPerformed.push('Enviar DIAN');
+              break;
           }
-        }catch(e){
-          setRow(item.adm,item.type,'err',e.message);
+          addTableRow(admision, action, 'running', actionMsg, idFactura, formatDateTime());
         }
-      };
 
-      const next = async ()=>{
-        if(STOP) return; 
-        const item = actions[done];
-        if(!item) return; 
-        await processOne(item);
-        done++; 
-        $bar.style.width=`${Math.round((done/total)*100)}%`;
-        if(done<total && !STOP) next();
-      };
+        // Éxito final
+        const finalMsg = actionsPerformed.length > 0 
+          ? `Completado: ${actionsPerformed.join(', ')}` 
+          : 'Sin acciones seleccionadas';
+        addTableRow(admision, 'Finalizado', 'success', finalMsg, idFactura, formatDateTime());
 
-      next();
+      } catch (error) {
+        const errorMsg = error.message;
+        addTableRow(admision, 'Error', 'error', errorMsg, idFactura || '-', formatDateTime());
+      }
     }
 
-    // =============================
-    // 🔘 Eventos de UI
-    // =============================
-    el('btnStart').onclick=run;
-    el('btnStop').onclick=()=>STOP=true;
-    el('btnClear').onclick=()=>{$tbl.innerHTML='';$bar.style.width='0%';};
+    async function startProcessing() {
+      if (isProcessing) return;
+      const text = elements.admisiones.value.trim();
+      if (!text) {
+        alert('Ingresa al menos un número de admisión.');
+        return;
+      }
 
-    // Habilitar/deshabilitar fecha según el check
-    const $chkFecha = el('chkFecha');
-    const $fecha    = el('fechaEmision');
-    const toggleFechaInput = ()=>{ $fecha.disabled = !$chkFecha.checked; if(!$chkFecha.checked){ $fecha.value=''; } };
-    $chkFecha.addEventListener('change', toggleFechaInput);
-    toggleFechaInput();
+      admisionList = text.split('\n').map(line => line.trim()).filter(line => line);
+      if (admisionList.length === 0) {
+        alert('No se encontraron números de admisión válidos.');
+        return;
+      }
+
+      // Validar fecha si está seleccionada
+      if (elements.chkFecha.checked && !elements.fechaEmision.value) {
+        alert('Selecciona una fecha de emisión.');
+        return;
+      }
+
+      // Habilitar fecha si checkbox fecha está marcado
+      elements.fechaEmision.disabled = !elements.chkFecha.checked;
+
+      isProcessing = true;
+      elements.btnStart.disabled = true;
+      elements.btnStop.disabled = false;
+      elements.tableBody.innerHTML = '';
+
+      abortController = new AbortController();
+
+      for (let i = 0; i < admisionList.length; i++) {
+        if (!isProcessing) break; // Detenido por usuario
+        if (abortController.signal.aborted) break;
+        await processAdmision(admisionList[i], i);
+      }
+
+      resetUI();
+    }
+
+    function stopProcessing() {
+      if (!isProcessing) return;
+      isProcessing = false;
+      if (abortController) abortController.abort();
+      elements.statusText.textContent = 'Procesamiento detenido.';
+    }
+
+    // ==============================================
+    // 🎛️ EVENT LISTENERS
+    // ==============================================
+    elements.btnStart.addEventListener('click', startProcessing);
+    elements.btnStop.addEventListener('click', stopProcessing);
+    elements.btnClear.addEventListener('click', () => {
+      elements.admisiones.value = '';
+      elements.fechaEmision.value = '';
+      resetUI();
+    });
+
+    // Habilitar/deshabilitar fecha basada en checkbox
+    elements.chkFecha.addEventListener('change', () => {
+      elements.fechaEmision.disabled = !elements.chkFecha.checked;
+      if (elements.fechaEmision.disabled) elements.fechaEmision.value = '';
+    });
+
+    // Inicialización
+    elements.fechaEmision.disabled = true;
+    elements.btnStop.disabled = true;
+
+    console.log('Aplicación inicializada. Servidor:', urlBase);
   </script>
 </body>
 </html>

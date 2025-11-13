@@ -1,40 +1,41 @@
 const express = require('express');
 const router = express.Router();
 
-// Import controller functions
+// AUDITORIA -----------------------------------------------------------
 const { Hs_Anx } = require('./Controller/historias');
 const { FacturaElectronica } = require('./Controller/facuraelectronica');
 const { obtenerDatosLogin } = require('./Controller/Base/toke');
 const { BatAuto } = require('./descargar/descargar');
 
 
-
-const { cambiarFechaEmision  } = require('./Controller/otro/cambiarF');
-const { getIdFacturaPorAdmision  } = require('./Controller/otro/generarNumeroFactura');
-const { DescargarLaboratorio  } = require('./Controller/otro/LABORATORIO/laboratorio');
-const { EnviarADian } = require('./Controller/otro/EnviarAdian');
+// AMICIONES -----------------------------------------------------------
+const { cambiarFechaEmision  } = require('./Controller/otro/Admiciones/cambiarF');
+const { NumeroFactura  } = require('./Controller/otro/Admiciones/generarNumeroFactura');
+const { EnviarADian } = require('./Controller/otro/Admiciones/EnviarAdian');
+const { buscarFactura } = require('./Controller/otro/Admiciones/buscar');
+// LABORATORIO -----------------------------------------------------------
+const { DescargarLaboratorio } = require('./Controller/otro/LABORATORIO/laboratorio');
 const { buscarPaciente } = require('./Controller/otro/LABORATORIO/herramientas/buscarPaciente');
-// area de generador de url pdf
 
+
+// AUDITORIA -----------------------------------------------------------
 router.get('/Hs_Anx', Hs_Anx);
 router.get('/facturaElectronica', FacturaElectronica);
-router.post('/DescargarLaboratorio', DescargarLaboratorio);
-router.post('/EnviarFacturaElectronica', EnviarADian);
-
-router.post('/buscarPaciente', buscarPaciente);
-//area de consultas
 router.post('/descargar', BatAuto);
-router.post('/api/istitucion', obtenerDatosLogin);
 
-
-
+// AMICIONES -----------------------------------------------------------
 router.post('/cambiar-fecha', cambiarFechaEmision);
-router.get('/por-admision', getIdFacturaPorAdmision);
+router.get('/GenerarNumeroFactura', NumeroFactura);
+router.post('/EnviarDian', EnviarADian);
+router.post('/BuscarIdFactura', buscarFactura);
+
+// LABORATORIO -----------------------------------------------------------
+router.post('/DescargarLaboratorio', DescargarLaboratorio);
+router.post('/buscarPaciente', buscarPaciente);
 
 
-/////////// coas de prueba ///////////
-
-
+//area de consultas de datos login
+router.post('/api/istitucion', obtenerDatosLogin);
 
 // Route to test server
 router.get('/router', (req, res) => {
